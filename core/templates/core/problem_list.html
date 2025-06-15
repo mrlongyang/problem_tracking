@@ -1,0 +1,32 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+  <a class="btn btn-primary mb-3" href="{% url 'problem_create' %}">➕ New Problem</a>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Priority</th>
+        <th>Department</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for problem in problems %}
+        <tr>
+          <td>
+            <a href="{% url 'problem_detail' problem.id %}">{{ problem.title }}</a>
+          </td>
+          <td>{{ problem.status }}</td>
+          <td>{{ problem.priority }}</td>
+          <td>{{ problem.department.name }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="4">No problems found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
