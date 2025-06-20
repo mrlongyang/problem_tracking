@@ -1,0 +1,117 @@
+
+
+/* Full background and center alignment */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    background-color: #f5f7ff;
+    padding: 20px;
+    background-image: url("../images/apb.jpg");  /* Adjust path if needed */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Login box styling */
+.login-box {
+    background: #fff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+/* Title and subtitle */
+.login-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #3f51b5;
+    margin-bottom: 10px;
+}
+
+.login-subtitle {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 30px;
+}
+
+/* Form group styling */
+.form-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #444;
+}
+
+/* Icon + Input wrapper */
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #f0f1fd;
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    position: relative;
+}
+
+.input-wrapper .icon {
+    margin-right: 8px;
+    color: #555;
+    font-size: 16px;
+}
+
+.input-wrapper input {
+    border: none;
+    outline: none;
+    background: transparent;
+    flex: 1;
+    font-size: 15px;
+    color: #333;
+}
+
+/* Toggle password */
+.toggle-password {
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+}
+
+/* Login button */
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    background-color: #3f51b5;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+.btn-login:hover {
+    background-color: #2c3fa4;
+}
+
+/* Register link */
+.register-link {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
+}
+
+.register-link a {
+    color: #f90;
+    text-decoration: none;
+    font-weight: 500;
+}

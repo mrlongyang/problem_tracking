@@ -1,17 +1,17 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Problem, ProblemAttachment
+from .models import Problem, ProblemAttachment, SolutionAttachment
+from core.models import User
+from .models import Solution
 
 class ProblemForm(forms.ModelForm):
     class Meta:
         model = Problem
         fields = ['title', 'description', 'priority', 'department']
 
-
 class ProblemAttachmentForm(forms.Form):
     
     pass
-
 
 User = get_user_model()
 
@@ -37,3 +37,34 @@ class RegisterForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class UserForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, required=False)
+    class Meta:
+        model = User
+        fields = ['email', 'name', 'user_group', 'role', 'is_active', 'is_staff', 'password']
+
+# forms.py
+class SolutionForm(forms.ModelForm):
+    class Meta:
+        model = Solution
+        fields = ['content']  # No attachments here
+
+
+
+
+from django.forms.widgets import FileInput
+from django.forms import FileInput  # ✅ Add this import
+
+class MultiFileInput(FileInput):
+    allow_multiple_selected = True
+
+
+class SolutionAttachmentForm(forms.Form):
+    attachments = forms.FileField(
+        widget=MultiFileInput(attrs={'multiple': True}),
+        required=False
+    )
+
+
+

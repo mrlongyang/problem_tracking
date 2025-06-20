@@ -1,0 +1,86 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<img src="{% static 'images/apb.jpg' %}" alt="MyApp Logo" style="width: 100px; height: auto; border-radius: 8px;">
+
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <nav class="col-md-2 sidebar-fixed">
+      <div class="text-center mt-3">
+        <h5>MyApp Admin</h5>
+      </div>
+      <ul class="nav flex-column mt-4">
+        {% for menu in menus %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ menu.nemu_url }}">
+              <i class="fa fa-chevron-right me-2"></i>{{ menu.menu_name }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="col-md-10 offset-md-2">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Dashboard</h1>
+        <span>Welcome, <strong>{{ request.user.name }}</strong></span>
+      </div>
+
+      <div class="row">
+        <!-- Users -->
+        <div class="col-md-6 col-lg-3 mb-3">
+          <div class="card shadow-sm border-0">
+            <div class="card-body d-flex align-items-center">
+              <i class="fa fa-users fa-2x text-primary me-3"></i>
+              <div>
+                <h6>Users</h6>
+                <h4>{{ stats.users_count }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Open Problems -->
+        <div class="col-md-6 col-lg-3 mb-3">
+          <div class="card shadow-sm border-0">
+            <div class="card-body d-flex align-items-center">
+              <i class="fa fa-exclamation-circle fa-2x text-danger me-3"></i>
+              <div>
+                <h6>Open Problems</h6>
+                <h4>{{ stats.open_problems }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Solved This Week -->
+        <div class="col-md-6 col-lg-3 mb-3">
+          <div class="card shadow-sm border-0">
+            <div class="card-body d-flex align-items-center">
+              <i class="fa fa-check-circle fa-2x text-success me-3"></i>
+              <div>
+                <h6>Solved This Week</h6>
+                <h4>{{ stats.resolved_this_week }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Last Updated -->
+        <div class="col-md-6 col-lg-3 mb-3">
+          <div class="card shadow-sm border-0 bg-light">
+            <div class="card-body text-center">
+              <h6 class="text-muted">Last Updated</h6>
+              <p id="lastUpdatedTime" class="fw-bold text-dark"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+{% endblock %}

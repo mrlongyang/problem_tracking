@@ -1,16 +1,16 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser,BaseUserManager, PermissionsMixin
 from django.conf import settings
 import uuid
-
-
 class Department(models.Model):
     department_id = models.CharField(max_length=10, primary_key=True)
-    name = models.CharField(max_length=100)
+    department_name = models.CharField(max_length=100)
+    class Meta:
+        verbose_name = "Department"              
+        verbose_name_plural = "Department"
 
     def __str__(self):
-        return self.name
-
+        return self.department_name  
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -25,25 +25,56 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
-
-
 class UserGroup(models.Model):
     user_group_id = models.CharField(primary_key=True, max_length=20)
-    name = models.CharField(max_length=100)
+    usergroup_name = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.name
+        return self.usergroup_name   
+class Menu(models.Model):
+    menu_id = models.CharField(primary_key=True, max_length=20)
+    menu_name = models.CharField(max_length=100)
+    nemu_url = models.CharField(max_length=200)
+    class Meta:
+        verbose_name = "Menu"              
+        verbose_name_plural = "Menu"
+
+    def __str__(self):
+        return self.menu_name       
+
+class Role(models.Model):
+    role_id = models.CharField(max_length=20, primary_key=True)
+    name = models.CharField(max_length=50)
+    class Meta:
+        verbose_name = "Role"              
+        verbose_name_plural = "Role"
+
+    def __str__(self):
+        return self.name            
+class Permission(models.Model):
+    menu_id = models.ForeignKey(Menu, on_delete=models.CASCADE, related_name='permission')
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, db_column='role_id')
+    class Meta:
+        unique_together = ('menu_id', 'role')
+        constraints = [
+            models.UniqueConstraint(fields=['menu_id', 'role'], name='unique_permission')
+        ]
+        verbose_name = "Permission"
+        verbose_name_plural = "Permission"
+
+    def __str__(self):
+        return f"{self.role.name} can access {self.menu_id.menu_name}"
 
 class User(AbstractBaseUser, PermissionsMixin):
-    user_group = models.ForeignKey(UserGroup, on_delete=models.SET_NULL, null=True, blank=True)
+    user_group = models.ForeignKey(UserGroup,on_delete=models.SET_NULL, null=True, blank=True)
     user_id = models.CharField(primary_key=True, max_length=50, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
-    role = models.CharField(max_length=10, choices=[('admin', 'Admin'), ('user', 'User'), ('staff', 'Staff')])
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-
+    is_superuser = models.BooleanField(default=False)
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
@@ -51,10 +82,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-
+    
+    groups = None
+    user_permissions = None
 
 class Problem(models.Model):
-    problem_id = models.AutoField(primary_key=True) 
+    problem_id = models.AutoField(primary_key=True)
     PRIORITY = [('Low', 'Low'), ('Medium', 'Medium'), ('High', 'High'), ('Critical', 'Critical')]
     STATUS = [('Open', 'Open'), ('In Progress', 'In Progress'), ('Solved', 'Solved'), ('Closed', 'Closed')]
     title = models.CharField(max_length=255)
@@ -66,12 +99,16 @@ class Problem(models.Model):
     status = models.CharField(max_length=15, choices=STATUS, default='Open')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name = "Problem"              
+        verbose_name_plural = "Problem"
+
 
     def __str__(self):
         return self.title
 
 class ProblemAttachment(models.Model):
-    problemattachment_id = models.CharField(primary_key=True, max_length=50)
+    problemattachment_id = models.CharField(primary_key=True, max_length=50, default=uuid.uuid4, editable=False)
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
     file = models.FileField(upload_to='attachments/')
     file_type = models.CharField(max_length=50)
@@ -99,34 +136,37 @@ class Solution(models.Model):
         default='text'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        verbose_name = "Solution"              
+        verbose_name_plural = "Solution"
 
     def __str__(self):
         return f"{self.solution_type} solution for problem #{self.problem_id}"
 
-
 class SolutionAttachment(models.Model):
+    solution_attachment_id = models.CharField(
+        primary_key=True,
+        max_length=36,
+        editable=False
+    )
     solution = models.ForeignKey(Solution, on_delete=models.CASCADE, related_name='attachments')
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     file = models.FileField(upload_to='solution_attachments/', null=True, blank=True)
-    link = models.URLField(null=True, blank=True)
     file_type = models.CharField(
         max_length=20,
-        choices=[
-            ('file', 'File'),
-            ('image', 'Image'),
-            ('link', 'Link'),
-        ]
+        choices=[('file', 'File'), ('image', 'Image'), ('link', 'Link')],
+        default='file'
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"Attachment for Solution #{self.solution.id} ({self.file_type})"
-
-
 class Tag(models.Model):
-    name = models.CharField(max_length=50)
-
+    tag_name = models.CharField(max_length=50)
+    class Meta:
+        verbose_name = "Tag"              
+        verbose_name_plural = "Tag"
 class ProblemTag(models.Model):
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
-
+    class Meta:
+        verbose_name = "ProblemTag"              
+        verbose_name_plural = "ProblemTag"

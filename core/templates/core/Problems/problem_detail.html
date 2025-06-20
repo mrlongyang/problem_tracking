@@ -1,0 +1,57 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h2>{{ problem.title }}</h2>
+<p><strong>Status:</strong> {{ problem.status }} | <strong>Priority:</strong> {{ problem.priority }}</p>
+<p><strong>Department:</strong> {{ problem.department.department_name }}</p>
+<p><strong>Description:</strong><br>{{ problem.description|linebreaks }}</p>
+<p><strong>Created by:</strong> {{ problem.created_by.name }} at {{ problem.created_at|date:"SHORT_DATETIME_FORMAT" }}
+</p>
+
+<hr>
+
+<h4>Attachments</h4>
+<ul>
+  {% for att in problem.problemattachment_set.all %}
+  <li>
+    {% if att.file.url %}
+    <a href="{{ att.file.url }}">{{ att.file.name }}</a>
+    {% else %}
+    [No file]
+    {% endif %}
+  </li>
+  {% empty %}
+  <li>No attachments.</li>
+  {% endfor %}
+</ul>
+
+<h4>Solutions</h4>
+{% for solution in solutions %}
+<div class="card mb-2">
+  <div class="card-body">
+    <p>{{ solution.content }}</p>
+    <small>By {{ solution.author.name }} on {{ solution.created_at }}</small>
+    <ul>
+      {% for attachment in solution.attachments.all %}
+      <li><a href="{{ attachment.file.url }}" target="_blank">Attachment</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% empty %}
+<p>No solutions yet.</p>
+{% endfor %}
+
+<hr>
+
+<h5>Submit Your Solution</h5>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <label>Attach Files:</label>
+  <input type="file" name="attachments" multiple class="form-control mb-2">
+  <button type="submit" class="btn btn-success">Submit Solution</button>
+</form>
+
+
+<a href="{% url 'problem_list' %}" class="btn btn-secondary">Back</a>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block content %}
+
+<!-- CSS & SweetAlert2 -->
+<link rel="stylesheet" href="{% static 'css/problem_list.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="top-bar">
+  <a href="{% url 'problem_create' %}" class="btn btn-primary">➕ New Problem</a>
+  <input type="text" id="searchInput" class="form-control search-box" placeholder="Search problems...">
+
+  <div class="profile-menu">
+    <img src="{% static 'images/apb.jpg' %}" id="profileIcon" alt="Profile">
+    <div class="profile-dropdown" id="profileDropdown">
+      <a href="{% url 'profile_view' %}">Profile</a>
+      <a href="#" onclick="confirmLogout(event)">Logout</a>
+    </div>
+  </div>
+</div>
+
+<table class="table table-striped" id="problemTable">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Status</th>
+      <th>Priority</th>
+      <th>Department</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for problem in problems %}
+    <tr>
+      <td><a href="{% url 'problem_detail' problem.problem_id %}">{{ problem.title }}</a></td>
+      <td>{{ problem.status }}</td>
+      <td>{{ problem.priority }}</td>
+      <td>{{ problem.department.department_name }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">No problems found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script src="{% static 'js/logout.js' %}"></script>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload</button>
+</form>
+
+<!-- Hidden logout form -->
+<form id="logoutForm" method="post" action="{% url 'logout' %}" style="display: none;">
+  {% csrf_token %}
+</form>
+
+{% endblock %}

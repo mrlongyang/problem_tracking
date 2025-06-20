@@ -1,0 +1,16 @@
+{% extends "core/base.html" %}
+{% block content %}
+  <h2>User Detail</h2>
+  <p><strong>Name:</strong> {{ user_obj.name }}</p>
+  <p><strong>Email:</strong> {{ user_obj.email }}</p>
+  <p><strong>Role:</strong> {{ user_obj.role.name }}</p>
+  <p><strong>Group:</strong> {{ user_obj.user_group.usergroup_name }}</p>
+  <p><strong>Active:</strong> {{ user_obj.is_active }}</p>
+  <p><strong>Staff:</strong> {{ user_obj.is_staff }}</p>
+  <a class="btn btn-warning" href="{% url 'user_edit' user_obj.user_id %}">Edit</a>
+  <form method="post" action="{% url 'user_delete' user_obj.user_id %}" style="display:inline">
+    {% csrf_token %}
+    <button class="btn btn-danger">Delete</button>
+  </form>
+  <a class="btn btn-secondary" href="{% url 'user_manager' %}">Back</a>
+{% endblock %}
