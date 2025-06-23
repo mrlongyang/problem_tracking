@@ -9,7 +9,7 @@ from django.forms import FileInput  # ✅ Add this import
 class ProblemForm(forms.ModelForm):
     class Meta:
         model = Problem
-        fields = ['title', 'description', 'priority', 'department']
+        fields = ['title', 'description', 'priority', 'department', 'module']
 
 class ProblemAttachmentForm(forms.Form):
     

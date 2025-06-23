@@ -3,8 +3,9 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _  # Optional for i18n
 from .models import (
     Department, User, Problem, Solution,
-    SolutionAttachment, Tag, ProblemTag, UserGroup, Role, Menu, Permission, ProblemAttachment
+    SolutionAttachment, Tag, ProblemTag, UserGroup, Role, Menu, Permission, ProblemAttachment, Module
 )
+from django.contrib.auth.admin import UserAdmin
 
 # Register all other models
 admin.site.register(Department)
@@ -18,7 +19,8 @@ admin.site.register(UserGroup)
 admin.site.register(Role)
 admin.site.register(Menu)
 admin.site.register(Permission)
-
+admin.site.register(Module)
+# admin.site.register(User, UserAdmin)
 @admin.register(User)
 class CustomUserAdmin(BaseUserAdmin):
     model = User

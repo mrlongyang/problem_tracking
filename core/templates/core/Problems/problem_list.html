@@ -21,6 +21,7 @@
   <thead>
     <tr>
       <th>Title</th>
+      <th>Module</th>
       <th>Status</th>
       <th>Priority</th>
       <th>Department</th>
@@ -31,6 +32,7 @@
     {% for problem in problems %}
     <tr>
       <td><a href="{% url 'problem_detail' problem.problem_id %}">{{ problem.title }}</a></td>
+      <td>{{ problem.module.module_name }}</td>
       <td>{{ problem.status }}</td>
       <td>{{ problem.priority }}</td>
       <td>{{ problem.department.department_name }}</td>

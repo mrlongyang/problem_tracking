@@ -84,8 +84,20 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
     
-    groups = None
-    user_permissions = None
+    # groups = None
+    # user_permissions = None
+    
+
+class Module(models.Model):
+    module_id = models.CharField(primary_key=True, max_length=20)
+    module_name = models.CharField(max_length=100)
+
+    class Meta:
+        verbose_name = "Module"
+        verbose_name_plural = "Module"
+
+    def __str__(self):
+        return self.module_name
 
 class Problem(models.Model):
     problem_id = models.AutoField(primary_key=True)
@@ -99,6 +111,7 @@ class Problem(models.Model):
     status = models.CharField(max_length=15, choices=STATUS, default='Open')
     title = models.CharField(max_length=255)
     description = models.TextField()
+    module = models.ForeignKey(Module, on_delete=models.SET_NULL, null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     user_group = models.ForeignKey(UserGroup, on_delete=models.SET_NULL, null=True, blank=True)  
@@ -112,6 +125,7 @@ class Problem(models.Model):
 
     def __str__(self):
         return self.title
+    
 
 class ProblemAttachment(models.Model):
     problemattachment_id = models.CharField(primary_key=True, max_length=50, default=uuid.uuid4, editable=False)
