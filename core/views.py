@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Problem, ProblemAttachment, Menu, Permission
+from .models import Problem, ProblemAttachment, Menu, Permission, Solution, SolutionAttachment, User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -10,17 +10,13 @@ from django.contrib.auth import get_user_model
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from .serializers import ProblemSerializer, RegisterSerializer
-from .forms import RegisterForm, ProblemForm, ProblemAttachmentForm, SolutionAttachmentForm
+from .forms import RegisterForm, ProblemForm, UserForm, SolutionForm, ProblemAttachmentForm, AttachmentUploadForm
 from rest_framework.decorators import api_view
-from .models import User
 from .serializers import UserSerializer
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponseForbidden
-from .forms import UserForm
-from .models import Problem, Solution, SolutionAttachment
-from .forms import SolutionForm  # make sure your form is imported
 import uuid
-
+from django.utils import timezone
 
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all().order_by('-created_at')
@@ -44,19 +40,18 @@ class CustomAuthToken(APIView):
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})
 
-
-#User Manager
-@login_required
-def profile_view(request):
-    return render(request, 'core/User_Profile/profile.html', {'user_obj': request.user})
-
-from django.contrib.auth.decorators import login_required
+#Dashboard
 @login_required
 def dashboard_view(request):
     if not Permission.objects.filter(menu_id__menu_id='dashboard', role=request.user.role).exists():
         return HttpResponseForbidden("You are not allowed to access This Page 🚫")
     menus = Menu.objects.filter(permission__role=request.user.role)
-    return render(request, 'core/dashboard.html', {'menus': menus})
+    return render(request, 'core/Dashboard/dashboard.html', {'menus': menus})
+
+#User Manager
+@login_required
+def profile_view(request):
+    return render(request, 'core/User_Profile/profile.html', {'user_obj': request.user})
 
 @login_required
 def user_manager_view(request):
@@ -147,9 +142,10 @@ def register_view(request):
             return redirect('login')  # or 'home'
     else:
         form = RegisterForm()
-    return render(request, 'core/register.html', {'form': form})
+    return render(request, 'core/Signup/register.html', {'form': form})
 
 
+#Authentication
 def login_view(request):
     if request.method == 'POST':
         email = request.POST['email']
@@ -160,13 +156,21 @@ def login_view(request):
             return redirect('problem_list')  # or any dashboard
         else:
             messages.error(request, 'Invalid email or password')
-    return render(request, 'core/login.html')
+    return render(request, 'core/Signup/login.html')
 
 def logout_view(request):
     logout(request)
-    return redirect('')
+    return redirect('login')
+
+@login_required
+def logout_confirm_view(request):
+    if request.method == 'POST':
+        logout(request)
+        return redirect('login')
+    return redirect('dashboard')
 
 
+#Function Manage Problem
 @login_required
 def problem_list(request):
     problems = Problem.objects.all()
@@ -176,7 +180,7 @@ def problem_list(request):
 @login_required
 def problem_detail(request, pk):
     problem = get_object_or_404(Problem, pk=pk)
-    solutions = problem.solutions.all()
+    solutions = Solution.objects.filter(problem=problem).prefetch_related('attachments')
     solution = None  # predefine for safe rendering
 
     if request.method == 'POST':
@@ -195,11 +199,12 @@ def problem_detail(request, pk):
                     uploaded_by=request.user,
                     file_type='file'
                 )
-
+            if solution.is_final_solution:
+                problem.status = "Resolved ✅"
+                problem.save()
             return redirect('problem_detail', pk=pk)
     else:
         form = SolutionForm()
-
     return render(request, 'core/Problems/problem_detail.html', {
         'problem': problem,
         'solutions': solutions,
@@ -237,29 +242,21 @@ def problem_create(request):
     })
 
 @login_required
-def logout_confirm_view(request):
-    if request.method == 'POST':
-        logout(request)
-        return redirect('login')  
-    return redirect('dashboard')
-
-
 def solution_create_view(request, problem_id):
-    problem = Problem.objects.get(pk=problem_id)
+    problem = get_object_or_404(Problem, pk=problem_id)
 
     if request.method == 'POST':
-        form = SolutionAttachmentForm(request.POST, request.FILES)
-        if form.is_valid():
-            # Create the solution
-            solution = Solution.objects.create(
-                problem=problem,
-                author=request.user,
-                content=request.POST.get('content', ''),
-                is_final_solution=False,
-                solution_type='text'
-            )
+        form = SolutionForm(request.POST)
+        attachment_form = AttachmentUploadForm(request.POST, request.FILES)
 
-            # Handle multiple attachments
+        if form.is_valid() and attachment_form.is_valid():
+            solution = form.save(commit=False)
+            solution.problem = problem
+            solution.author = request.user
+            solution.solution_type = 'text'
+            solution.save()
+
+            # Handle attachments
             for file in request.FILES.getlist('attachments'):
                 SolutionAttachment.objects.create(
                     solution=solution,
@@ -269,8 +266,19 @@ def solution_create_view(request, problem_id):
                     solution_attachment_id=str(uuid.uuid4())
                 )
 
-            return redirect('problem_detail', pk=problem_id)
+            # Update status
+            if solution.is_final_solution:
+                problem.status = "Resolved ✅"
+                problem.last_updated = timezone.now()
+                problem.save()
 
+            return redirect('problem_detail', pk=problem_id)
     else:
-        form = SolutionAttachmentForm()
-    return render(request, 'core/Sulotions/solution_create.html', {'form': form, 'problem': problem})
+        form = SolutionForm()
+        attachment_form = AttachmentUploadForm()
+
+    return render(request, 'core/Sulotions/solution_create.html', {
+        'form': form,
+        'attachment_form': attachment_form,
+        'problem': problem
+    })

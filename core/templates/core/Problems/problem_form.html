@@ -1,17 +1,55 @@
-{% extends "core/base.html" %}
+{% extends "core/Main/base.html" %}
+{% load static %}
 {% block content %}
-<h2>Create New Problem</h2>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    
-    <!-- Manual file input -->
-    <label for="files">Attachments:</label>
-    <input type="file" name="files" multiple>
 
-    <br><br>
+<link rel="stylesheet" href="{% static 'css/problem_form.css' %}">
 
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
-<a class="btn btn-link mt-3" href="{% url 'problem_list' %}">Cancel</a>
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <h2 class="mb-4 text-primary">🛠️ Create New Problem</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Django form fields -->
+            <div class="mb-3">
+                {{ form.as_p }}
+            </div>
+
+            <!-- File input -->
+            <div class="mb-3">
+                <label for="files" class="form-label fw-bold">📎 Attachments:</label>
+                <input class="form-control" type="file" name="files" id="files" multiple>
+                <small class="form-text text-muted">You can select multiple files.</small>
+                <div id="file-preview" class="mt-2"></div>
+            </div>
+
+            <button type="submit" class="btn btn-success">✅ Submit</button>
+            <a class="btn btn-secondary ms-2" href="{% url 'problem_list' %}">❌ Cancel</a>
+        </form>
+    </div>
+</div>
+
+<!-- JS for file preview -->
+<script>
+    document.getElementById('files').addEventListener('change', function (event) {
+        const preview = document.getElementById('file-preview');
+        preview.innerHTML = ''; // Clear previous preview
+
+        const files = event.target.files;
+        if (files.length === 0) return;
+
+        const list = document.createElement('ul');
+        list.className = 'list-group';
+
+        Array.from(files).forEach(file => {
+            const item = document.createElement('li');
+            item.className = 'list-group-item';
+            item.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+            list.appendChild(item);
+        });
+
+        preview.appendChild(list);
+    });
+</script>
+
 {% endblock %}

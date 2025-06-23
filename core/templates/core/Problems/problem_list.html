@@ -1,8 +1,6 @@
-{% extends "core/base.html" %}
+{% extends "core/Main/base.html" %}
 {% load static %}
 {% block content %}
-
-<!-- CSS & SweetAlert2 -->
 <link rel="stylesheet" href="{% static 'css/problem_list.css' %}">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -26,6 +24,7 @@
       <th>Status</th>
       <th>Priority</th>
       <th>Department</th>
+      <th>Last Updated</th>
     </tr>
   </thead>
   <tbody>
@@ -35,6 +34,7 @@
       <td>{{ problem.status }}</td>
       <td>{{ problem.priority }}</td>
       <td>{{ problem.department.department_name }}</td>
+      <td>{{ problem.last_updated }}</td>
     </tr>
     {% empty %}
     <tr><td colspan="4">No problems found.</td></tr>
@@ -42,12 +42,11 @@
   </tbody>
 </table>
 
-<script src="{% static 'js/logout.js' %}"></script>
 
+<script src="{% static 'js/logout.js' %}"></script>
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Upload</button>
 </form>
 
 <!-- Hidden logout form -->

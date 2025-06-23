@@ -1,0 +1,13 @@
+user staff:
+email: test@example.com
+Password: testpassword123
+
+user admin:
+email: groupa@example.com
+Password: TestPass123
+
+User Test1: user1@gmail.com
+Password: user1234
+
+User Test2: user2@gmail.com
+Password: user2345

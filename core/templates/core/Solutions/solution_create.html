@@ -1,14 +1,19 @@
-{% extends "core/base.html" %}
+{% extends "core/Main/base.html" %}
 {% load static %}
 {% block content %}
 <h2>Submit Solution</h2>
 
 <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <textarea name="content" class="form-control mb-3" placeholder="Write your solution..."></textarea>
-    {{ form.attachments.label_tag }}
-    {{ form.attachments }}  <!-- This will render the <input type="file" multiple> -->
-    <button type="submit">Submit</button>
+  {% csrf_token %}
+  <textarea name="content" placeholder="Write your solution..." required></textarea>
+
+  <label>
+    <input type="checkbox" name="is_final_solution"> Mark as final solution
+  </label>
+
+  <input type="file" name="attachments" multiple>
+  <button type="submit" class="btn btn-success">Submit Solution</button>
 </form>
+
 
 {% endblock %}

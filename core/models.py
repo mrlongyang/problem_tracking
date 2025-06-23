@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager, PermissionsMixin
 from django.conf import settings
+from uuid import uuid4
 import uuid
 class Department(models.Model):
     department_id = models.CharField(max_length=10, primary_key=True)
@@ -89,20 +90,25 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Problem(models.Model):
     problem_id = models.AutoField(primary_key=True)
     PRIORITY = [('Low', 'Low'), ('Medium', 'Medium'), ('High', 'High'), ('Critical', 'Critical')]
-    STATUS = [('Open', 'Open'), ('In Progress', 'In Progress'), ('Solved', 'Solved'), ('Closed', 'Closed')]
+    STATUS = [
+        ('Open', 'Open'), 
+        ('Solved', 'Solved'), 
+        ('Closed', 'Closed'), 
+        ('Resolved ✅', 'Resolved ✅')
+        ]
+    status = models.CharField(max_length=15, choices=STATUS, default='Open')
     title = models.CharField(max_length=255)
     description = models.TextField()
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     user_group = models.ForeignKey(UserGroup, on_delete=models.SET_NULL, null=True, blank=True)  
     priority = models.CharField(max_length=10, choices=PRIORITY)
-    status = models.CharField(max_length=15, choices=STATUS, default='Open')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    last_updated = models.DateTimeField(auto_now=True)
     class Meta:
         verbose_name = "Problem"              
         verbose_name_plural = "Problem"
-
 
     def __str__(self):
         return self.title
@@ -119,11 +125,12 @@ class ProblemAttachment(models.Model):
         return f"Attachment for {self.problem.title}"
 
 class Solution(models.Model):
-    solution_id = models.CharField(primary_key=True, max_length=50)
+    solution_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     problem = models.ForeignKey('Problem', on_delete=models.CASCADE, related_name='solutions')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
     is_final_solution = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
     solution_type = models.CharField(
         max_length=30,
         choices=[
@@ -135,18 +142,17 @@ class Solution(models.Model):
         ],
         default='text'
     )
-    created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         verbose_name = "Solution"              
         verbose_name_plural = "Solution"
-
     def __str__(self):
-        return f"{self.solution_type} solution for problem #{self.problem_id}"
+        return f"{self.solution_type} solution for problem #{self.solution_id}"
 
 class SolutionAttachment(models.Model):
     solution_attachment_id = models.CharField(
         primary_key=True,
         max_length=36,
+        default=uuid4, 
         editable=False
     )
     solution = models.ForeignKey(Solution, on_delete=models.CASCADE, related_name='attachments')

@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from .models import Problem, ProblemAttachment, SolutionAttachment
 from core.models import User
 from .models import Solution
+from django.forms.widgets import FileInput
+from django.forms import FileInput  # ✅ Add this import
 
 class ProblemForm(forms.ModelForm):
     class Meta:
@@ -48,23 +50,16 @@ class UserForm(forms.ModelForm):
 class SolutionForm(forms.ModelForm):
     class Meta:
         model = Solution
-        fields = ['content']  # No attachments here
-
-
-
-
-from django.forms.widgets import FileInput
-from django.forms import FileInput  # ✅ Add this import
-
+        fields = ['content', 'is_final_solution']
+        widgets = {
+            'content': forms.Textarea(attrs={'placeholder': 'Write your solution here...'}),
+        }
+                  
 class MultiFileInput(FileInput):
     allow_multiple_selected = True
 
-
-class SolutionAttachmentForm(forms.Form):
+class AttachmentUploadForm(forms.Form):
     attachments = forms.FileField(
         widget=MultiFileInput(attrs={'multiple': True}),
         required=False
     )
-
-
-
