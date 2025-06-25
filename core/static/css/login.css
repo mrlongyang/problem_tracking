@@ -1,31 +1,42 @@
+/* Set full background and center content */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
 
-
-/* Full background and center alignment */
 .login-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 80vh;
-    background-color: #f5f7ff;
-    padding: 20px;
-    background-image: url("../images/apb.jpg");  /* Adjust path if needed */
+    min-height: 100vh;
+    position: relative;
+    background-image: url("../images/apb.jpg");
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
 }
 
-/* Login box styling */
+.login-container::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 255, 255, 0.85);  /* White overlay */
+    z-index: 0;
+}
+
+/* Box styles */
 .login-box {
-    background: #fff;
+    background: white;
     padding: 40px 30px;
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     width: 100%;
     max-width: 400px;
     text-align: center;
+    position: relative;
+    z-index: 1;
 }
 
-/* Title and subtitle */
 .login-title {
     font-size: 28px;
     font-weight: bold;
@@ -36,10 +47,9 @@
 .login-subtitle {
     font-size: 14px;
     color: #777;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
-/* Form group styling */
 .form-group {
     text-align: left;
     margin-bottom: 20px;
@@ -48,25 +58,17 @@
 .form-group label {
     display: block;
     margin-bottom: 6px;
-    font-weight: 500;
+    font-weight: 600;
     color: #444;
 }
 
-/* Icon + Input wrapper */
 .input-wrapper {
     display: flex;
     align-items: center;
     background: #f0f1fd;
     border-radius: 8px;
     padding: 10px 12px;
-    border: 1px solid #ddd;
-    position: relative;
-}
-
-.input-wrapper .icon {
-    margin-right: 8px;
-    color: #555;
-    font-size: 16px;
+    border: 1px solid #ccc;
 }
 
 .input-wrapper input {
@@ -78,7 +80,6 @@
     color: #333;
 }
 
-/* Toggle password */
 .toggle-password {
     margin-left: 8px;
     cursor: pointer;
@@ -86,7 +87,7 @@
     color: #666;
 }
 
-/* Login button */
+/* Button */
 .btn-login {
     width: 100%;
     padding: 12px;
@@ -114,4 +115,14 @@
     color: #f90;
     text-decoration: none;
     font-weight: 500;
+}
+
+/* Alert */
+.alert {
+    color: #a94442;
+    background-color: #f2dede;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-size: 14px;
 }

@@ -21,6 +21,8 @@ from django.db.models import Count
 from django.utils.safestring import mark_safe
 from datetime import timedelta
 import json
+from core.forms import RegisterForm
+
 
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all().order_by('-created_at')
@@ -127,40 +129,62 @@ def register_user(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-class RegisterView(APIView):
-    def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+from django import forms
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
+
+class RegisterForm(forms.ModelForm):
+    confirm_password = forms.CharField(widget=forms.PasswordInput())
+
+    class Meta:
+        model = User
+        fields = ['user_id', 'name', 'email', 'password']
+        widgets = {
+            'password': forms.PasswordInput()
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm = cleaned_data.get("confirm_password")
+
+        if password and confirm and password != confirm:
+            self.add_error("confirm_password", "Passwords do not match")
+
+    
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Registration successful.")
-            return redirect('login')  # or 'home'
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            return redirect('login')
     else:
         form = RegisterForm()
     return render(request, 'core/Signup/register.html', {'form': form})
 
 
+
 #Authentication
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from django.shortcuts import render, redirect
+
 def login_view(request):
     if request.method == 'POST':
-        email = request.POST['email']
-        password = request.POST['password']
-        user = authenticate(request, email=email, password=password)
+        user_id = request.POST.get('user_id')
+        password = request.POST.get('password')
+        user = authenticate(request, user_id=user_id, password=password)
         if user is not None:
             login(request, user)
-            return redirect('problem_list')  # or any dashboard
+            return redirect('dashboard')  # or your home page
         else:
-            messages.error(request, 'Invalid email or password')
+            messages.error(request, 'Invalid user ID or password.')
+
     return render(request, 'core/Signup/login.html')
+
 
 def logout_view(request):
     logout(request)
@@ -346,8 +370,20 @@ def dashboard_view(request):
 
 @login_required
 def settings_view(request):
-    # Placeholder for setting logic
-    return render(request, 'core/Settings/settings.html')
+    # Example settings logic: handle user profile update
+    if request.method == 'POST':
+        form = UserForm(request.POST, instance=request.user)
+        if form.is_valid():
+            user = form.save(commit=False)
+            pwd = form.cleaned_data.get('password')
+            if pwd:
+                user.set_password(pwd)
+            user.save()
+            messages.success(request, "Settings updated successfully.")
+            return redirect('settings')
+    else:
+        form = UserForm(instance=request.user)
+    return render(request, 'core/Settings/settings.html', {'form': form})
 
 
 @login_required

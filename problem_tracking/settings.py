@@ -45,7 +45,7 @@ INSTALLED_APPS = [
 ]
 
 
-AUTH_USER_MODEL = 'core.User'
+AUTH_USER_MODEL = 'core.User' 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 LOGOUT_REDIRECT_URL = '/login/'

@@ -3,6 +3,29 @@ from django.contrib.auth.models import AbstractBaseUser,BaseUserManager, Permiss
 from django.conf import settings
 from uuid import uuid4
 import uuid
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, user_id, email, name, password=None, **extra_fields):
+        if not user_id:
+            raise ValueError("Users must have a user_id")
+        if not email:
+            raise ValueError("Users must have an email")
+
+        email = self.normalize_email(email)
+        user = self.model(user_id=user_id, email=email, name=name, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        if not extra_fields.get('user_id'):
+            extra_fields['user_id'] = 'admin001'  # or prompt to manually set
+        return self.create_user(email, password, **extra_fields)
+
+
+
 class Department(models.Model):
     department_id = models.CharField(max_length=10, primary_key=True)
     department_name = models.CharField(max_length=100)
@@ -13,10 +36,20 @@ class Department(models.Model):
     def __str__(self):
         return self.department_name  
 class UserManager(BaseUserManager):
+    def generate_user_id(self, department):
+        prefix = department.department_id.upper()  # e.g., HR
+        count = User.objects.filter(department=department).count() + 1
+        return f"{prefix}{count:03d}"  # e.g., HR001
+
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('Email must be set')
         email = self.normalize_email(email)
+        department = extra_fields.get('department')
+        if not department:
+            raise ValueError('Department must be provided')
+        if not extra_fields.get('user_id'):
+            extra_fields['user_id'] = self.generate_user_id(department)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
@@ -26,6 +59,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
+
 class UserGroup(models.Model):
     user_group_id = models.CharField(primary_key=True, max_length=20)
     usergroup_name = models.CharField(max_length=100)
@@ -68,7 +102,7 @@ class Permission(models.Model):
 
 class User(AbstractBaseUser, PermissionsMixin):
     user_group = models.ForeignKey(UserGroup,on_delete=models.SET_NULL, null=True, blank=True)
-    user_id = models.CharField(primary_key=True, max_length=50, default=uuid.uuid4, editable=False)
+    user_id = models.CharField(primary_key=True, max_length=10, unique=True)
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
@@ -78,8 +112,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name']
+    USERNAME_FIELD = 'user_id'
+    REQUIRED_FIELDS = ['email', 'name']
 
     def __str__(self):
         return self.email

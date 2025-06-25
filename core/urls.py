@@ -2,11 +2,12 @@ from rest_framework.authtoken.views import obtain_auth_token
 from django.urls import path, include
 from . import views
 from .views import CustomAuthToken
-from .views import RegisterView
+from .views import RegisterForm
 from rest_framework import routers
 from .views import ProblemViewSet
 from .views import dashboard_view, unauthorized_view, solution_create_view, user_manager_view, user_create_view
 from django.contrib.auth import views as auth_views
+
 
 
 router = routers.DefaultRouter()
@@ -22,9 +23,6 @@ urlpatterns = [
     path('dashboard/report-issue/', views.report_issue_view, name='report_issue'),
     path('dashboard/system-logs/', views.system_logs_view, name='system_logs'),
     
-
-    
-
     #User Url Rout
     path('unauthorized/', unauthorized_view, name='unauthorized'),
     # path('users/', views.user_manager_view, name='user_manager'),
@@ -54,5 +52,4 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('api/register/', views.register_user, name='register_user'),
     path('api-token-auth/', CustomAuthToken.as_view(), name='custom_api_token_auth'),
-    
 ]
