@@ -18,6 +18,9 @@ from django.http import HttpResponseForbidden
 import uuid
 from django.utils import timezone
 from django.db.models import Count
+from django.utils.safestring import mark_safe
+from datetime import timedelta
+import json
 
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all().order_by('-created_at')
@@ -302,25 +305,13 @@ def most_problematic_module(request):
     })
     
 # New Dashboard
-from django.contrib.auth.decorators import login_required
-from django.utils.safestring import mark_safe
-from django.shortcuts import render
-from django.http import HttpResponseForbidden
-from django.db.models import Count
-from datetime import timedelta
-import json
-
-from .models import Problem, Permission
-
 @login_required
 def dashboard_view(request):
     # Permission check
     if not Permission.objects.filter(menu_id__menu_id='dashboard', role=request.user.role).exists():
         return HttpResponseForbidden("You are not allowed to access This Page 🚫")
-
     problems = Problem.objects.all()
     resolved_issues = problems.filter(status="Resolved ✅").count()
-
     # Calculate average resolution time from created_at to updated_at
     resolved_problems = problems.filter(
         status="Resolved ✅",
@@ -345,13 +336,50 @@ def dashboard_view(request):
         'total_issues': problems.count(),
         'resolved_issues': resolved_issues,
         'avg_resolution_days': round(avg_days, 1),
-
         'status_labels': mark_safe(json.dumps([s['status'] for s in status_counts])),
         'status_data': mark_safe(json.dumps([s['count'] for s in status_counts])),
-
         'priority_labels': mark_safe(json.dumps([p['priority'] for p in priority_counts])),
         'priority_data': mark_safe(json.dumps([p['count'] for p in priority_counts])),
     }
-
     return render(request, 'core/Dashboard/dashboard.html', context)
 
+
+@login_required
+def settings_view(request):
+    # Placeholder for setting logic
+    return render(request, 'core/Settings/settings.html')
+
+
+@login_required
+def report_issue_view(request):
+    if request.method == 'POST':
+        form = ProblemForm(request.POST, request.FILES)
+        if form.is_valid():
+            problem = form.save(commit=False)
+            problem.created_by = request.user
+            problem.save()
+            # Handle attachments if any
+            for file in request.FILES.getlist('files'):
+                ProblemAttachment.objects.create(
+                    problem=problem,
+                    file=file,
+                    uploaded_by=request.user
+                )
+            messages.success(request, "Issue reported successfully.")
+            return redirect('problem_list')
+    else:
+        form = ProblemForm()
+    return render(request, 'core/Problems/report_issue.html', {'form': form})
+
+
+@login_required
+def system_logs_view(request):
+    # Example: Read logs from a file (customize the path as needed)
+    log_file_path = 'logs/system.log'
+    logs = []
+    try:
+        with open(log_file_path, 'r', encoding='utf-8') as f:
+            logs = f.readlines()
+    except FileNotFoundError:
+        logs = ["Log file not found."]
+    return render(request, 'core/Problems/system_logs.html', {'logs': logs})

@@ -14,9 +14,15 @@ router.register(r'problems', ProblemViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
+    
     #Dashboard Url Rout
     path('dashboard/', dashboard_view, name='dashboard'),
     path('dashboard/users/', views.user_manager_view, name='user_manager'),
+    path('settings/', views.settings_view, name='settings'),
+    path('dashboard/report-issue/', views.report_issue_view, name='report_issue'),
+    path('dashboard/system-logs/', views.system_logs_view, name='system_logs'),
+    
+
     
 
     #User Url Rout
