@@ -83,10 +83,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-    
-    # groups = None
-    # user_permissions = None
-    
 
 class Module(models.Model):
     module_id = models.CharField(primary_key=True, max_length=20)

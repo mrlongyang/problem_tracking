@@ -1,107 +1,31 @@
-.sidebar-fixed {
-  background: #343a40;
+body {
+  background-color: #0f172a;
+  color: white;
+}
+
+.sidebar {
+  background-color: #1e293b;
   min-height: 100vh;
   padding-top: 1rem;
+}
+
+.sidebar .nav-link {
+  color: #cbd5e1;
+}
+
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+  background-color: #334155;
   color: white;
-}
-
-.sidebar-fixed .nav-link {
-  color: #bbb;
-}
-
-.sidebar-fixed .nav-link:hover {
-  color: white;
-  background-color: #495057;
-}
-
-.card-body h4 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-
-.sidebar-logo {
-  width: 100px;
-  height: auto;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.sidebar-fixed {
-  background-color: #1f2937;
-  /* Tailwind Gray-800 */
-  min-height: 100vh;
-  padding: 20px 0;
-  color: #f9fafb;
-  /* light text */
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
-}
-
-.sidebar-fixed img {
-  width: 80px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-.sidebar-fixed h5 {
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
-}
-
-.sidebar-fixed .nav-link {
-  color: #9ca3af;
-  padding: 10px 20px;
-  border-left: 4px solid transparent;
-  transition: 0.3s;
-}
-
-.sidebar-fixed .nav-link:hover,
-.sidebar-fixed .nav-link.active {
-  color: #fff;
-  background-color: #374151;
-  /* Gray-700 */
-  border-left: 4px solid #3b82f6;
-  /* Blue-500 */
 }
 
 .card {
+  background-color: #1e293b;
+  color: white;
+  border: none;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-  transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-}
-
-.card-body h4 {
-  font-weight: bold;
-  font-size: 1.6rem;
-}
-
-main h1.h3 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 1.2rem;
-}
-
-main span strong {
-  color: #2563eb;
-  /* Blue-600 */
-}
-
-body {
-  background: #f9fafb;
-}
-
-.container-fluid {
-  padding: 0;
-}
-
-main {
-  padding: 2rem 3rem;
-  background-color: #f9fafb;
-  min-height: 100vh;
+.card .text-muted {
+  color: #94a3b8 !important;
 }

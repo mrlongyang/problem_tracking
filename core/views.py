@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Problem, ProblemAttachment, Menu, Permission, Solution, SolutionAttachment, User
+from .models import Problem, ProblemAttachment, Menu, Permission, Solution, SolutionAttachment, User, Module
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -17,6 +17,7 @@ from django.contrib.auth.hashers import make_password
 from django.http import HttpResponseForbidden
 import uuid
 from django.utils import timezone
+from django.db.models import Count
 
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all().order_by('-created_at')
@@ -41,14 +42,14 @@ class CustomAuthToken(APIView):
         return Response({'token': token.key})
 
 #Dashboard
-@login_required
-def dashboard_view(request):
-    if not Permission.objects.filter(menu_id__menu_id='dashboard', role=request.user.role).exists():
-        return HttpResponseForbidden("You are not allowed to access This Page 🚫")
-    menus = Menu.objects.filter(permission__role=request.user.role)
-    return render(request, 'core/Dashboard/dashboard.html', {'menus': menus})
+# @login_required
+# def dashboard_view(request):
+#     if not Permission.objects.filter(menu_id__menu_id='dashboard', role=request.user.role).exists():
+#         return HttpResponseForbidden("You are not allowed to access This Page 🚫")
+#     menus = Menu.objects.filter(permission__role=request.user.role)
+#     return render(request, 'core/Dashboard/dashboard.html', {'menus': menus})
 
-#User Manager
+# Function User Manager
 @login_required
 def profile_view(request):
     return render(request, 'core/User_Profile/profile.html', {'user_obj': request.user})
@@ -176,11 +177,11 @@ def problem_list(request):
     problems = Problem.objects.all()
     return render(request, 'core/Problems/problem_list.html', {'problems': problems})
 
-
 @login_required
 def problem_detail(request, pk):
     problem = get_object_or_404(Problem, pk=pk)
     solutions = Solution.objects.filter(problem=problem).prefetch_related('attachments')
+    solution_count = problem.solutions.count()
     solution = None  # predefine for safe rendering
 
     if request.method == 'POST':
@@ -208,6 +209,7 @@ def problem_detail(request, pk):
     return render(request, 'core/Problems/problem_detail.html', {
         'problem': problem,
         'solutions': solutions,
+        'solution_count': solution_count,
         'form': form,
         'solution': solution  # None if not submitted
     })
@@ -241,6 +243,7 @@ def problem_create(request):
         'attachment_form': attachment_form
     })
 
+# Function Create Solution
 @login_required
 def solution_create_view(request, problem_id):
     problem = get_object_or_404(Problem, pk=problem_id)
@@ -255,7 +258,6 @@ def solution_create_view(request, problem_id):
             solution.author = request.user
             solution.solution_type = 'text'
             solution.save()
-
             # Handle attachments
             for file in request.FILES.getlist('attachments'):
                 SolutionAttachment.objects.create(
@@ -265,20 +267,91 @@ def solution_create_view(request, problem_id):
                     file_type='file',
                     solution_attachment_id=str(uuid.uuid4())
                 )
-
             # Update status
             if solution.is_final_solution:
                 problem.status = "Resolved ✅"
                 problem.last_updated = timezone.now()
                 problem.save()
-
             return redirect('problem_detail', pk=problem_id)
     else:
         form = SolutionForm()
         attachment_form = AttachmentUploadForm()
-
-    return render(request, 'core/Sulotions/solution_create.html', {
+    return render(request, 'core/Solutions/solution_create.html', {
         'form': form,
         'attachment_form': attachment_form,
         'problem': problem
     })
+
+
+# Function Get Notification
+def problem_notification(request):
+    if request.user.is_authenticated:
+        unresolved_count = Problem.objects.exclude(status__in=['Closed', 'Resolved ✅']).count()
+    else:
+        unresolved_count = 0
+    return {
+        'notification_count': unresolved_count
+    }
+
+# Function count Module problem
+def most_problematic_module(request):
+    to_module = Module.objects.annotate(problem_count=Count('problem')).order_by('-problem_count').first()
+    
+    return render(request, 'core/Problems/most_problematic_module.html', {
+        'to_module': to_module
+    })
+    
+# New Dashboard
+from django.contrib.auth.decorators import login_required
+from django.utils.safestring import mark_safe
+from django.shortcuts import render
+from django.http import HttpResponseForbidden
+from django.db.models import Count
+from datetime import timedelta
+import json
+
+from .models import Problem, Permission
+
+@login_required
+def dashboard_view(request):
+    # Permission check
+    if not Permission.objects.filter(menu_id__menu_id='dashboard', role=request.user.role).exists():
+        return HttpResponseForbidden("You are not allowed to access This Page 🚫")
+
+    problems = Problem.objects.all()
+    resolved_issues = problems.filter(status="Resolved ✅").count()
+
+    # Calculate average resolution time from created_at to updated_at
+    resolved_problems = problems.filter(
+        status="Resolved ✅",
+        created_at__isnull=False,
+        updated_at__isnull=False
+    )
+
+    if resolved_problems.exists():
+        total_days = sum(
+            [(p.updated_at - p.created_at).days for p in resolved_problems],
+            0
+        )
+        avg_days = total_days / resolved_problems.count()
+    else:
+        avg_days = 0
+
+    # Status and Priority Chart Data
+    status_counts = problems.values('status').annotate(count=Count('status'))
+    priority_counts = problems.values('priority').annotate(count=Count('priority'))
+
+    context = {
+        'total_issues': problems.count(),
+        'resolved_issues': resolved_issues,
+        'avg_resolution_days': round(avg_days, 1),
+
+        'status_labels': mark_safe(json.dumps([s['status'] for s in status_counts])),
+        'status_data': mark_safe(json.dumps([s['count'] for s in status_counts])),
+
+        'priority_labels': mark_safe(json.dumps([p['priority'] for p in priority_counts])),
+        'priority_data': mark_safe(json.dumps([p['count'] for p in priority_counts])),
+    }
+
+    return render(request, 'core/Dashboard/dashboard.html', context)
+

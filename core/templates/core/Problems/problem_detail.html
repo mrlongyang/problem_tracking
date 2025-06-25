@@ -1,62 +1,134 @@
 {% extends "core/Main/base.html" %}
+{% load static %}
 {% block content %}
-<h2>{{ problem.title }}</h2>
-<p><strong>Status:</strong> {{ problem.status }} | <strong>Priority:</strong> {{ problem.priority }}</p>
-<p><strong>Department:</strong> {{ problem.department.department_name }}</p>
-<p><strong>Description:</strong><br>{{ problem.description|linebreaks }}</p>
-<p><strong>Created by:</strong> {{ problem.created_by.name }} at {{ problem.created_at|date:"SHORT_DATETIME_FORMAT" }}
-</p>
+<link rel="stylesheet" href="{% static 'css/problem_detail.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<hr>
+<div id="themeToggleWrapper" class="position-fixed top-0 end-0 p-3 z-3">
+  <div class="form-check form-switch">
+    <input class="form-check-input" type="checkbox" id="themeToggle">
+    <label class="form-check-label text-dark" for="themeToggle">🌙 Dark Mode</label>
+  </div>
+</div>
 
-<h4>Attachments:</h4>
-<ul>
-  {% for att in problem.problemattachment_set.all %}
-  <li>
-    {% if att.file.url %}
-    <a href="{{ att.file.url }}">{{ att.file.name }}</a>
-    {% else %}
-    [No file]
-    {% endif %}
-  </li>
-  {% empty %}
-  <li>No attachments.</li>
-  {% endfor %}
-</ul>
 
-<h4>Solutions:</h4>
-{% for solution in solutions %}
-<div class="card mb-2">
-  <div class="card-body">
-    <p>{{ solution.content }}</p>
-    <small>By {{ solution.author.name }} on {{ solution.created_at }}</small>
-    <ul>
-      {% for attachment in solution.attachments.all %}
-      <li><a href="{{ attachment.file.url }}" target="_blank">Attachment</a></li>
+<div class="container py-4">
+  <div class="card shadow-lg">
+    <div class="card-body">
+      <h4 class="card-title text-primary">{{ problem.title }}</h4>
+      <p><strong>Module:</strong> {{ problem.module.module_name|default:"—" }}</p>
+      <p>
+        <span class="badge bg-warning text-dark">Status: {{ problem.status }}</span>
+        <span class="badge bg-info text-dark">Priority: {{ problem.priority }}</span>
+      </p>
+      <p><strong>Department:</strong> {{ problem.department.department_name }}</p>
+      <p><strong>Description:</strong><br> {{ problem.description|linebreaks }}</p>
+      <p class="text-muted">
+        <strong>Created by:</strong> {{ problem.created_at|date:"F j, Y, g:i a" }}
+      </p>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <h4>📎 Attachments:</h4>
+    <ul class="list-group list-group-flush">
+      {% for att in problem.problemattachment_set.all %}
+      <li class="list-group-item">
+        {% if att.file.url %}
+        <a href="{{ att.file.url }}" target="_blank">{{ att.file.name }}</a>
+        {% else %}
+        [No file]
+        {% endif %}
+      </li>
       {% empty %}
-      <li>No attachments.</li>
+      <li class="list-group-item text-muted">No attachments.</li>
       {% endfor %}
     </ul>
   </div>
-</div>
-{% empty %}
-<p>No solutions yet.</p>
-{% endfor %}
+
+  <div class="mt-4">
+    <h4>💡 Solutions:</h4>
+    {% for solution in solutions %}
+    <div class="card border-success mb-3">
+      <div class="card-body">
+        <p class="card-text">{{ solution.content }}</p>
+        <small class="text-muted">By {{ solution.author.name }} on {{ solution.created_at }}</small>
+        <ul class="mt-2">
+          {% for attachment in solution.attachments.all %}
+          <li><a href="{{ attachment.file.url }}" target="_blank">📎 Attachment</a></li>
+          {% empty %}
+          <li>No attachments.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">No solutions yet.</p>
+    {% endfor %}
+  </div>
+
+  <p><strong>Solutions:</strong> {{ problem.solutions.count }}</p>
+  <div class="mt-5">
+    <h5>📝 Submit Your Solution</h5>
+    <form method="post" enctype="multipart/form-data" class="bg-light p-4 rounded shadow-sm"
+      onsubmit="return showSubmitMessage()">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <label class="form-label">Attach Files:</label>
+      <input type="file" name="attachments" multiple class="form-control mb-3">
+      <button type="submit" class="btn btn-success">✅ Submit Solution</button>
+    </form>
 
 
-<hr>
+    <div class="mt-3">
+      <a href="{% url 'problem_list' %}" class="btn btn-secondary">🔙 Back to List</a>
+    </div>
+  </div>
 
-<h5>Submit Your Solution</h5>
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <label>Attach Files:</label>
+  {% if messages %}
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    {% for message in messages %}
+    <div class="toast align-items-center text-white bg-success border-0 show" role="alert">
+      <div class="d-flex">
+        <div class="toast-body">
+          {{ message }}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
-  <input type="file" name="attachments" multiple class="form-control mb-2">
-  <button type="submit" class="btn btn-success">Submit Solution</button>
-</form>
 
-<br>
-<a href="{% url 'problem_list' %}" class="btn btn-secondary mt-n2">Back</a>
+  <script>
+    function showSubmitMessage() {
+      alert("✅ Submit solution successful! Thank you.");
+      return true;
+    }
+  </script>
 
-{% endblock %}
+  <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+      toastElList.map(function (toastEl) {
+        return new bootstrap.Toast(toastEl, { delay: 4000 }).show();
+      });
+    });
+  </script>
+
+
+  <script>
+    const toggle = document.getElementById('themeToggle');
+    const body = document.body;
+
+    toggle.addEventListener('change', function () {
+      if (this.checked) {
+        body.classList.add('dark-mode');
+      } else {
+        body.classList.remove('dark-mode');
+      }
+    });
+  </script>
+
+  {% endblock %}

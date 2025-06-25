@@ -1,0 +1,45 @@
+.card-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+body {
+  background-color: #f8f9fa;
+}
+
+h4, h5 {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+form label {
+  font-weight: 500;
+}
+
+.list-group-item a {
+  text-decoration: none;
+  color: #0d6efd;
+}
+
+.list-group-item a:hover {
+  text-decoration: underline;
+}
+
+/* Dark mode style */
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode .card,
+body.dark-mode .list-group-item,
+body.dark-mode form {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-color: #333;
+}
+
+body.dark-mode a {
+  color: #90caf9;
+}
+

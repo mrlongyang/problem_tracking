@@ -1,0 +1,7 @@
+<h3>📊 Module with the Most Reported Problems</h3>
+
+{% if top_module %}
+  <p><strong>{{ top_module.module_name }}</strong> has <strong>{{ top_module.problem_count }}</strong> problems reported.</p>
+{% else %}
+  <p>No problems have been reported yet.</p>
+{% endif %}

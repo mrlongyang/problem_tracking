@@ -1,0 +1,29 @@
+.form-bg {
+    height: 100vh;
+    background: linear-gradient(135deg, #4e54c8, #8f94fb);
+    padding: 20px;
+}
+
+.card {
+    border-radius: 1rem;
+    background-color: #ffffffee; /* slight transparency for effect */
+}
+
+form label {
+    font-weight: 600;
+    color: #333;
+}
+
+#file-preview li {
+    font-size: 0.95rem;
+}
+
+.btn-outline-light {
+    border-color: #fff;
+    color: #fff;
+}
+
+.btn-outline-light:hover {
+    background-color: #ffffff33;
+    color: #fff;
+}
