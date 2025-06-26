@@ -102,7 +102,7 @@ class Permission(models.Model):
 
 class User(AbstractBaseUser, PermissionsMixin):
     user_group = models.ForeignKey(UserGroup,on_delete=models.SET_NULL, null=True, blank=True)
-    user_id = models.CharField(primary_key=True, max_length=10, unique=True)
+    user_id = models.CharField(primary_key=True, max_length=50, unique=True)
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
@@ -130,7 +130,7 @@ class Module(models.Model):
         return self.module_name
 
 class Problem(models.Model):
-    problem_id = models.AutoField(primary_key=True)
+    problem_id = models.CharField(primary_key=True, max_length=20)
     PRIORITY = [('Low', 'Low'), ('Medium', 'Medium'), ('High', 'High'), ('Critical', 'Critical')]
     STATUS = [
         ('Open', 'Open'), 

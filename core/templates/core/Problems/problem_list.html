@@ -14,8 +14,10 @@
         style="white-space: nowrap;">
         ➕&nbsp;New&nbsp;Problem
       </a>
-      <input type="text" name="search" class="form-control search-box" placeholder="Search problems..."
-        value="{{ search_query }}">
+      <input type="text" name="search" class="form-control" placeholder="Search problems..." value="{{ search_query }}"
+        style="min-width: 600px; max-width: 800px;">
+
+
     </form>
 
 
@@ -39,7 +41,7 @@
         </ul>
       </div>
 
-      <a class="nav-link position-relative" href="{{ notification_url }}">
+      <a class="nav-link position-relative" href="{{ latest_problem_link }}">
         🔔 Notification
         {% if notification_count > 0 %}
         <span class="notification-badge">{{ notification_count }}</span>
@@ -61,7 +63,9 @@
 <table class="table table-striped" id="problemTable">
   <thead>
     <tr>
+      <th>Problem ID:</th>
       <th>Title:</th>
+      <th>Description:</th>
       <th>Module:</th>
       <th>Status:</th>
       <th>Priority:</th>
@@ -71,21 +75,18 @@
   </thead>
   <tbody id="problemTableBody">
     {% for problem in page_obj %}
-    <tr class="problem-row">
-      <td><a href="{% url 'problem_detail' problem.problem_id %}">{{ problem.title }}</a></td>
+    <tr>
+      <td>{{ problem.problem_id }}</td>
+      <td><a href="{% url 'problem_detail' problem_id=problem.problem_id %}">{{ problem.title }}</a></td>
+      <td>{{ problem.description }}</td>
       <td>{{ problem.module.module_name }}</td>
       <td>{{ problem.status }}</td>
       <td>{{ problem.priority }}</td>
       <td>{{ problem.department.department_name }}</td>
       <td>{{ problem.updated_at|date:"SHORT_DATETIME_FORMAT" }}</td>
     </tr>
-    {% empty %}
-    <tr>
-      <td colspan="6">No Problems Found.</td>
-    </tr>
     {% endfor %}
   </tbody>
-
 </table>
 
 <nav aria-label="Page navigation">
@@ -120,6 +121,21 @@
     {% endif %}
   </ul>
 </nav>
+
+<script>
+  const searchInput = document.querySelector('input[name="search"]');
+  const tableBody = document.getElementById('problemTableBody');
+
+  searchInput.addEventListener('input', function () {
+    const query = this.value;
+    fetch(`/ajax/search-problems/?search=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        tableBody.innerHTML = data.html;
+      });
+  });
+</script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'js/problem_list.js' %}"></script>

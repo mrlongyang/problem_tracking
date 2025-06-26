@@ -24,6 +24,7 @@ import json
 from core.forms import RegisterForm
 from django import forms
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 
 class ProblemViewSet(viewsets.ModelViewSet):
@@ -76,12 +77,12 @@ def user_create_view(request):
 
 @login_required
 def user_detail_view(request, pk):
-    user = get_object_or_404(User, pk=pk)
+    user = get_object_or_404(User, problem_id=pk)
     return render(request, 'core/User_Management/user_detail.html', {'user_obj': user})
 
 @login_required
 def user_edit_view(request, pk):
-    user = get_object_or_404(User, pk=pk)
+    user = get_object_or_404(User, problem_id=pk)
     if request.method == 'POST':
         form = UserForm(request.POST, instance=user)
         if form.is_valid():
@@ -97,7 +98,7 @@ def user_edit_view(request, pk):
 
 @login_required
 def user_delete_view(request, pk):
-    user = get_object_or_404(User, pk=pk)
+    user = get_object_or_404(User, problem_id=pk)
     if request.method == 'POST':
         user.delete()
         return redirect('user_manager')
@@ -187,39 +188,36 @@ def logout_confirm_view(request):
     return redirect('dashboard')
 
 #Function Manage Problem
-
 @login_required
 def problem_list(request):
     search_query = request.GET.get('search', '')
     selected_priority = request.GET.get('priority', '')
 
-    # Start with all problems
     problems = Problem.objects.all()
 
-    # Filter by title if search is used
+    # ✅ Search by problem_id OR title (case-insensitive)
     if search_query:
-        problems = problems.filter(title__icontains=search_query)
+        problems = problems.filter(
+            Q(problem_id__icontains=search_query) | Q(title__icontains=search_query)
+        )
 
-    # Filter by priority if selected
     if selected_priority:
         problems = problems.filter(priority=selected_priority)
 
-    # Apply pagination AFTER filtering
     paginator = Paginator(problems, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    context = {
+    return render(request, 'core/Problems/problem_list.html', {
         'page_obj': page_obj,
         'search_query': search_query,
         'selected_priority': selected_priority,
-    }
-    return render(request, 'core/Problems/problem_list.html', context)
+    })
 
 
 @login_required
-def problem_detail(request, pk):
-    problem = get_object_or_404(Problem, pk=pk)
+def problem_detail(request, problem_id):
+    problem = get_object_or_404(Problem, problem_id=problem_id)
     solutions = Solution.objects.filter(problem=problem).prefetch_related('attachments')
     solution_count = problem.solutions.count()
     solution = None  # predefine for safe rendering
@@ -243,7 +241,7 @@ def problem_detail(request, pk):
             if solution.is_final_solution:
                 problem.status = "Resolved ✅"
                 problem.save()
-            return redirect('problem_detail', pk=pk)
+            return redirect('problem_detail', problem_id=problem_id)
     else:
         form = SolutionForm()
     return render(request, 'core/Problems/problem_detail.html', {
@@ -278,7 +276,7 @@ def problem_create(request):
         form = ProblemForm()
         attachment_form = ProblemAttachmentForm()
 
-    return render(request, 'core/Problems/problem_form.html', {
+    return render(request, 'core/Problems/problem_create.html', {
         'form': form,
         'attachment_form': attachment_form
     })
@@ -286,7 +284,7 @@ def problem_create(request):
 # Function Create Solution
 @login_required
 def solution_create_view(request, problem_id):
-    problem = get_object_or_404(Problem, pk=problem_id)
+    problem = get_object_or_404(Problem, problem_id=problem_id)
 
     if request.method == 'POST':
         form = SolutionForm(request.POST)
@@ -312,7 +310,7 @@ def solution_create_view(request, problem_id):
                 problem.status = "Resolved ✅"
                 problem.last_updated = timezone.now()
                 problem.save()
-            return redirect('problem_detail', pk=problem_id)
+            return redirect('problem_detail', problem_id=problem_id)
     else:
         form = SolutionForm()
         attachment_form = AttachmentUploadForm()
@@ -325,8 +323,6 @@ def solution_create_view(request, problem_id):
 
 # Function Get Notification
 from django.urls import reverse
-
-
 def problem_notification(request):
     unresolved_count = 0
     latest_problem_link = ''
@@ -341,7 +337,6 @@ def problem_notification(request):
         'notification_count': unresolved_count,
         'latest_problem_link': latest_problem_link
     }
-
 
 # Function count Module problem
 def most_problematic_module(request):
@@ -442,3 +437,21 @@ def system_logs_view(request):
     except FileNotFoundError:
         logs = ["Log file not found."]
     return render(request, 'core/Problems/system_logs.html', {'logs': logs})
+
+
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from django.db.models import Q
+
+def ajax_search_problems(request):
+    query = request.GET.get('search', '')
+    problems = Problem.objects.all()
+
+    if query:
+        problems = problems.filter(
+            Q(problem_id__icontains=query) |
+            Q(title__icontains=query)
+        )
+
+    html = render_to_string('core/Problems/_problem_table_body.html', {'problems': problems})
+    return JsonResponse({'html': html})

@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 class ProblemForm(forms.ModelForm):
     class Meta:
         model = Problem
-        fields = ['title', 'description', 'priority', 'department', 'module']
+        fields = ['problem_id', 'title', 'description', 'priority', 'department', 'module']
 
 class ProblemAttachmentForm(forms.Form):
     

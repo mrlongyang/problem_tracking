@@ -1,23 +1,59 @@
 {% extends "core/Main/base.html" %}
 {% load static %}
 {% block content %}
+{% load widget_tweaks %}
+
+<style>
+    .long-input {
+    width: 80%;
+    max-width: 800px;
+}
+
+</style>
 
 <link rel="stylesheet" href="{% static 'css/problem_form.css' %}">
 
 <div class="container mt-5">
     <div class="card shadow p-4">
-        <h2 class="mb-4 text-primary">🛠️ Create New Problem</h2>
+        <h5 class="mb-4 text-primary">🛠️Create New Problem</h5>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
             <!-- Django form fields -->
             <div class="mb-3">
-                {{ form.as_p }}
+                <label for="id_problem_id" class="form-label fw-bold">🆔 Problem ID:</label>
+                {{ form.problem_id }}
+            </div>
+
+            <div class="mb-3 d-flex align-items-center">
+                <label for="id_title" class="form-label fw-bold me-3" style="white-space: nowrap;">📝 Title:</label>
+                {{ form.title|add_class:"form-control long-input" }}
+            </div>
+
+
+            <div class="mb-3">
+                <label for="id_description" class="form-label fw-bold">📄Description:</label>
+                {{ form.description }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_priority" class="form-label fw-bold">🚦Priority:</label>
+                {{ form.priority }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_department" class="form-label fw-bold">🏢Department:</label>
+                {{ form.department }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_module" class="form-label fw-bold">📦Module:</label>
+                {{ form.module }}
             </div>
 
             <!-- File input -->
             <div class="mb-3">
-                <label for="files" class="form-label fw-bold">📎 Attachments:</label>
+                <label for="files" class="form-label fw-bold">📎Attachments:</label>
                 <input class="form-control" type="file" name="files" id="files" multiple>
                 <small class="form-text text-muted">You can select multiple files.</small>
                 <div id="file-preview" class="mt-2"></div>
@@ -47,7 +83,6 @@
             item.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
             list.appendChild(item);
         });
-
         preview.appendChild(list);
     });
 </script>

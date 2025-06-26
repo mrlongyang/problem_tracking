@@ -18,12 +18,17 @@
 <h4>Your Problems:</h4>
 <ul class="list-group">
   {% for prob in request.user.problem_set.all %}
-    <li class="list-group-item">
-      <a href="{% url 'problem_detail' prob.problem_id %}">{{ prob.title }}</a>
-      <span class="badge bg-secondary float-end">{{ prob.status }}</span>
-    </li>
+  <li class="list-group-item">
+    {% if prob.problem_id %}
+    <a href="{% url 'problem_detail' problem_id=prob.problem_id %}">{{ prob.title }}</a>
+    {% else %}
+    <span>{{ prob.title }}</span>
+    {% endif %}
+
+    <span class="badge bg-secondary float-end">{{ prob.status }}</span>
+  </li>
   {% empty %}
-    <li class="list-group-item">No problems submitted.</li>
+  <li class="list-group-item">No problems submitted.</li>
   {% endfor %}
 </ul>
 

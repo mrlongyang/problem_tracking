@@ -31,8 +31,8 @@ urlpatterns = [
 
     #Problem Url Rout
     path('problems/', views.problem_list, name='problem_list'),
-    path('problem/<int:pk>/', views.problem_detail, name='problem_detail'),
-    path('problem/new/', views.problem_create, name='problem_create'),
+    path('problem/<str:problem_id>/', views.problem_detail, name='problem_detail'),
+    path('problems/new/', views.problem_create, name='problem_create'),
     # urls.py
     path('problem/<int:problem_id>/add-solution/', solution_create_view, name='solution_create'),
 
@@ -48,4 +48,7 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('api/register/', views.register_user, name='register_user'),
     path('api-token-auth/', CustomAuthToken.as_view(), name='custom_api_token_auth'),
+    
+    path('ajax/search-problems/', views.ajax_search_problems, name='ajax_search_problems'),
+
 ]
