@@ -1,126 +1,173 @@
-{% extends 'core/Main/base.html' %}
 {% load static %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
 
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" type="image/png" href="{% static 'images/logo.jpg' %}">
 
-<div class="container-fluid">
-  <div class="row">
-    
-    <!-- Sidebar -->
-    <nav class="col-md-2 d-none d-md-block bg-light sidebar">
-      <div class="sidebar-sticky">
-        <ul class="nav flex-column">
-          <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-            📊 Dashboard
-            </a>
 
-            <a class="nav-link {% if request.resolver_match.url_name == 'user_manager' %}active{% endif %}" href="{% url 'user_manager' %}">
-              👤 User Manager
-            </a>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
 
-            <a class="nav-link {% if request.resolver_match.url_name == 'report_issue' %}active{% endif %}" href="{% url 'report_issue' %}">
-              📝 Report Issue
-            </a>
-            <a class="nav-link {% if request.resolver_match.url_name == 'system_logs' %}active{% endif %}" href="{% url 'system_logs' %}">
-              ♻️ System Logs
-            </a>
-            
+    /* Sidebar styling */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 220px;
+      background-color: #f8f9fa;
+      border-right: 1px solid #dee2e6;
+      padding-top: 20px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
 
-            <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'settings' %}">
-              ⚙️ Settings
-            </a>
-            
-        </ul>
+    .sidebar .nav-link {
+      padding: 12px 20px;
+      display: block;
+      color: #333;
+      text-decoration: none;
+      transition: background 0.3s;
+    }
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+      background-color: #007bff;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 4px;
+    }
+
+    /* Main content styling */
+    .content {
+      margin-left: 220px;
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+          href="{% url 'dashboard' %}">📊 Dashboard</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'user_manager' %}active{% endif %}"
+          href="{% url 'user_manager' %}">👤 User Manager</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'report_issue' %}active{% endif %}"
+          href="{% url 'report_issue' %}">📝 Report Issue</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'system_logs' %}active{% endif %}"
+          href="{% url 'system_logs' %}">♻️ System Logs</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
+          href="{% url 'settings' %}">⚙️ Settings</a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="content">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card bg-dark text-white shadow-sm p-3 mb-3">
+          <h5>Total Issues:</h5>
+          <h3>{{ total_issues }}</h3>
+        </div>
       </div>
-    </nav>
+      <div class="col-md-4">
+        <div class="card bg-dark text-white shadow-sm p-3 mb-3">
+          <h5>Resolved Issues:</h5>
+          <h3>{{ resolved_issues }}</h3>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-dark text-white shadow-sm p-3 mb-3">
+          <h5>Avg. Resolution Time:</h5>
+          <h3>{{ avg_resolution_days }} days</h3>
+        </div>
+      </div>
+    </div>
 
-    <!-- Main content -->
-    <main class="col-md-10 ml-sm-auto px-4">
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card bg-dark text-white shadow-sm p-3 mb-3">
-            <h5>Total Issues:</h5>
-            <h3>{{ total_issues }}</h3>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card bg-dark text-white shadow-sm p-3 mb-3">
-            <h5>Resolved Issues:</h5>
-            <h3>{{ resolved_issues }}</h3>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card bg-dark text-white shadow-sm p-3 mb-3">
-            <h5>Avg. Resolution Time:</h5>
-            <h3>{{ avg_resolution_days }} days</h3>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Issues by Status:</h5>
+            <canvas id="statusChart"></canvas>
           </div>
         </div>
       </div>
-
-      <div class="row">
-        <div class="col-md-6">
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-              <h5 class="card-title">Issues by Status</h5>
-              <canvas id="statusChart"></canvas>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-              <h5 class="card-title">Issues by Priority</h5>
-              <canvas id="priorityChart"></canvas>
-            </div>
+      <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Issues by Priority:</h5>
+            <canvas id="priorityChart"></canvas>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   </div>
-</div>
 
-
-<!-- Embed the chart data -->
-<script id="chart-data" type="application/json">
-  {
-    "status": {
-      "labels": {{ status_labels|safe }},
-      "data": {{ status_data|safe }}
-    },
-    "priority": {
-      "labels": {{ priority_labels|safe }},
-      "data": {{ priority_data|safe }}
+  <!-- Chart data -->
+  <script id="chart-data" type="application/json">
+    {
+      "status": {
+        "labels": {{ status_labels|safe }},
+        "data": {{ status_data|safe }}
+      },
+      "priority": {
+        "labels": {{ priority_labels|safe }},
+        "data": {{ priority_data|safe }}
+      }
     }
-  }
-</script>
+  </script>
 
-<!-- Then use this script -->
-<script>
-  const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+  <!-- Chart rendering script -->
+  <script>
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
 
-  new Chart(document.getElementById("statusChart"), {
-    type: "doughnut",
-    data: {
-      labels: chartData.status.labels,
-      datasets: [{
-        data: chartData.status.data,
-        backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#007bff', '#6c757d']
-      }]
-    }
-  });
+    new Chart(document.getElementById("statusChart"), {
+      type: "doughnut",
+      data: {
+        labels: chartData.status.labels,
+        datasets: [{
+          data: chartData.status.data,
+          backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#007bff', '#6c757d']
+        }]
+      }
+    });
 
-  new Chart(document.getElementById("priorityChart"), {
-    type: "bar",
-    data: {
-      labels: chartData.priority.labels,
-      datasets: [{
-        label: 'Issue Count',
-        data: chartData.priority.data,
-        backgroundColor: ['#a3e635', '#facc15', '#ef4444', '#0d6efd']
-      }]
-    }
-  });
-</script>
-{% endblock %}
+    new Chart(document.getElementById("priorityChart"), {
+      type: "bar",
+      data: {
+        labels: chartData.priority.labels,
+        datasets: [{
+          label: 'Issue Count',
+          data: chartData.priority.data,
+          backgroundColor: ['#a3e635', '#facc15', '#ef4444', '#0d6efd']
+        }]
+      }
+    });
+  </script>
+
+</body>
+
+</html>

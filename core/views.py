@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Problem, ProblemAttachment, Menu, Permission, Solution, SolutionAttachment, User, Module
+from .models import Problem, ProblemAttachment, Permission, Solution, SolutionAttachment, User, Module
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
-from .serializers import ProblemSerializer, RegisterSerializer
+from .serializers import ProblemSerializer
 from .forms import RegisterForm, ProblemForm, UserForm, SolutionForm, ProblemAttachmentForm, AttachmentUploadForm
 from rest_framework.decorators import api_view
 from .serializers import UserSerializer
@@ -22,6 +22,8 @@ from django.utils.safestring import mark_safe
 from datetime import timedelta
 import json
 from core.forms import RegisterForm
+from django import forms
+from django.core.paginator import Paginator
 
 
 class ProblemViewSet(viewsets.ModelViewSet):
@@ -30,7 +32,6 @@ class ProblemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 User = get_user_model()
-
 class CustomAuthToken(APIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get("email")
@@ -45,14 +46,6 @@ class CustomAuthToken(APIView):
             return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})
-
-#Dashboard
-# @login_required
-# def dashboard_view(request):
-#     if not Permission.objects.filter(menu_id__menu_id='dashboard', role=request.user.role).exists():
-#         return HttpResponseForbidden("You are not allowed to access This Page 🚫")
-#     menus = Menu.objects.filter(permission__role=request.user.role)
-#     return render(request, 'core/Dashboard/dashboard.html', {'menus': menus})
 
 # Function User Manager
 @login_required
@@ -129,9 +122,6 @@ def register_user(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-from django import forms
-from django.contrib.auth import get_user_model
-
 User = get_user_model()
 
 class RegisterForm(forms.ModelForm):
@@ -166,20 +156,19 @@ def register_view(request):
     return render(request, 'core/Signup/register.html', {'form': form})
 
 
-
 #Authentication
-from django.contrib.auth import authenticate, login
-from django.contrib import messages
-from django.shortcuts import render, redirect
-
 def login_view(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         password = request.POST.get('password')
         user = authenticate(request, user_id=user_id, password=password)
+        
         if user is not None:
             login(request, user)
-            return redirect('dashboard')  # or your home page
+            if user.role and user.role.name.lower() == 'admin':
+                return redirect('dashboard')
+            else:
+                return redirect('problem_list')
         else:
             messages.error(request, 'Invalid user ID or password.')
 
@@ -197,12 +186,36 @@ def logout_confirm_view(request):
         return redirect('login')
     return redirect('dashboard')
 
-
 #Function Manage Problem
+
 @login_required
 def problem_list(request):
+    search_query = request.GET.get('search', '')
+    selected_priority = request.GET.get('priority', '')
+
+    # Start with all problems
     problems = Problem.objects.all()
-    return render(request, 'core/Problems/problem_list.html', {'problems': problems})
+
+    # Filter by title if search is used
+    if search_query:
+        problems = problems.filter(title__icontains=search_query)
+
+    # Filter by priority if selected
+    if selected_priority:
+        problems = problems.filter(priority=selected_priority)
+
+    # Apply pagination AFTER filtering
+    paginator = Paginator(problems, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'selected_priority': selected_priority,
+    }
+    return render(request, 'core/Problems/problem_list.html', context)
+
 
 @login_required
 def problem_detail(request, pk):
@@ -311,14 +324,24 @@ def solution_create_view(request, problem_id):
 
 
 # Function Get Notification
+from django.urls import reverse
+
+
 def problem_notification(request):
+    unresolved_count = 0
+    latest_problem_link = ''
+    
     if request.user.is_authenticated:
-        unresolved_count = Problem.objects.exclude(status__in=['Closed', 'Resolved ✅']).count()
-    else:
-        unresolved_count = 0
+        unresolved = Problem.objects.exclude(status__in=['Closed', 'Resolved ✅']).order_by('-created_at')
+        unresolved_count = unresolved.count()
+        if unresolved.exists():
+            latest_problem_link = reverse('problem_detail', kwargs={'pk': unresolved.first().pk})
+
     return {
-        'notification_count': unresolved_count
+        'notification_count': unresolved_count,
+        'latest_problem_link': latest_problem_link
     }
+
 
 # Function count Module problem
 def most_problematic_module(request):
@@ -333,7 +356,7 @@ def most_problematic_module(request):
 def dashboard_view(request):
     # Permission check
     if not Permission.objects.filter(menu_id__menu_id='dashboard', role=request.user.role).exists():
-        return HttpResponseForbidden("You are not allowed to access This Page 🚫")
+        return HttpResponseForbidden("You have no permission to access this Page! 🚫")
     problems = Problem.objects.all()
     resolved_issues = problems.filter(status="Resolved ✅").count()
     # Calculate average resolution time from created_at to updated_at
