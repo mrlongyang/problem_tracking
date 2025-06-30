@@ -1,0 +1,69 @@
+{% extends "Core/Main/base_user_manager.html" %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card bg-dark text-white shadow-sm p-3 mb-3">
+        <h5>Total Issues:</h5>
+        <h3>{{ total_issues }}</h3>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-dark text-white shadow-sm p-3 mb-3">
+        <h5>Resolved Issues:</h5>
+        <h3>{{ resolved_issues }}</h3>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-dark text-white shadow-sm p-3 mb-3">
+        <h5>Avg. Resolution Time:</h5>
+        <h3>{{ avg_resolution_days }} days</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5>Issues by Status:</h5>
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5>Issues by Priority:</h5>
+          <canvas id="priorityChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script id="chart-data" type="application/json">
+{
+  "status": {
+    "labels": {{ status_labels|safe }},
+    "data": {{ status_data|safe }}
+  },
+  "priority": {
+    "labels": {{ priority_labels|safe }},
+    "data": {{ priority_data|safe }}
+  }
+}
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

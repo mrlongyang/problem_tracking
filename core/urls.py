@@ -8,7 +8,6 @@ from .views import ProblemViewSet
 from .views import dashboard_view, unauthorized_view, solution_create_view, user_manager_view, user_create_view
 from django.contrib.auth import views as auth_views
 
-
 router = routers.DefaultRouter()
 router.register(r'problems', ProblemViewSet)
 

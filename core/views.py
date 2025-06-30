@@ -25,7 +25,9 @@ from core.forms import RegisterForm
 from django import forms
 from django.core.paginator import Paginator
 from django.db.models import Q
-
+from django.urls import reverse
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all().order_by('-created_at')
@@ -58,7 +60,7 @@ def user_manager_view(request):
     if not request.user.role:
         return HttpResponseForbidden()
     users = User.objects.all()
-    return render(request, 'core/User_Management/user_manager.html', {'users': users})
+    return render(request, 'core/Dashboard/User_Management/user_manager.html', {'users': users})
 
 @login_required
 def user_create_view(request):
@@ -192,22 +194,18 @@ def logout_confirm_view(request):
 def problem_list(request):
     search_query = request.GET.get('search', '')
     selected_priority = request.GET.get('priority', '')
-
     problems = Problem.objects.all()
-
     # ✅ Search by problem_id OR title (case-insensitive)
     if search_query:
         problems = problems.filter(
             Q(problem_id__icontains=search_query) | Q(title__icontains=search_query)
         )
-
     if selected_priority:
         problems = problems.filter(priority=selected_priority)
 
-    paginator = Paginator(problems, 10)
+    paginator = Paginator(problems, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
     return render(request, 'core/Problems/problem_list.html', {
         'page_obj': page_obj,
         'search_query': search_query,
@@ -322,7 +320,6 @@ def solution_create_view(request, problem_id):
 
 
 # Function Get Notification
-from django.urls import reverse
 def problem_notification(request):
     unresolved_count = 0
     latest_problem_link = ''
@@ -383,7 +380,7 @@ def dashboard_view(request):
         'priority_labels': mark_safe(json.dumps([p['priority'] for p in priority_counts])),
         'priority_data': mark_safe(json.dumps([p['count'] for p in priority_counts])),
     }
-    return render(request, 'core/Dashboard/dashboard.html', context)
+    return render(request, 'core/Dashboard/User_Management/dashboard.html', context)
 
 
 @login_required
@@ -437,11 +434,6 @@ def system_logs_view(request):
     except FileNotFoundError:
         logs = ["Log file not found."]
     return render(request, 'core/Problems/system_logs.html', {'logs': logs})
-
-
-from django.http import JsonResponse
-from django.template.loader import render_to_string
-from django.db.models import Q
 
 def ajax_search_problems(request):
     query = request.GET.get('search', '')

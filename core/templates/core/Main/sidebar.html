@@ -1,0 +1,29 @@
+<nav class="sidebar">
+  <ul class="nav flex-column">
+    <li class="nav-item">
+      <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+        📊 Dashboard
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.resolver_match.url_name == 'user_manager' %}active{% endif %}" href="{% url 'user_manager' %}">
+        👤 User Manager
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.resolver_match.url_name == 'report_issue' %}active{% endif %}" href="{% url 'report_issue' %}">
+        📝 Report Issue
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.resolver_match.url_name == 'system_logs' %}active{% endif %}" href="{% url 'system_logs' %}">
+        ♻️ System Logs
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'settings' %}">
+        ⚙️ Settings
+      </a>
+    </li>
+  </ul>
+</nav>
