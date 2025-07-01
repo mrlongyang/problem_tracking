@@ -1,3 +1,8 @@
+.long-input {
+    width: 80%;
+    max-width: 800px;
+}
+
 .form-bg {
     height: 100vh;
     background: linear-gradient(135deg, #4e54c8, #8f94fb);
@@ -6,7 +11,8 @@
 
 .card {
     border-radius: 1rem;
-    background-color: #ffffffee; /* slight transparency for effect */
+    background-color: #ffffffee;
+    /* slight transparency for effect */
 }
 
 form label {

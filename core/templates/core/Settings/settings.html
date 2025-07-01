@@ -57,18 +57,18 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+        <h5 class="modal-title" id="logoutModalLabel">ຢືນຢັນ</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        Are you sure you want to logout?
+        ທ່ານຕ້ອງການອອກຈາກລະບົບບໍ່?
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ຍົກເລີກ</button>
 
         <form method="POST" action="{% url 'logout' %}?next={% url 'login' %}">
           {% csrf_token %}
-          <button type="submit" class="btn btn-danger">Yes, Logout</button>
+          <button type="submit" class="btn btn-danger">ອອກ</button>
         </form>
       </div>
     </div>

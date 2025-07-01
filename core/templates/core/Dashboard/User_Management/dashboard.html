@@ -1,7 +1,7 @@
 {% extends "Core/Main/base_user_manager.html" %}
 {% load static %}
-
 {% block title %}Dashboard{% endblock %}
+
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -10,31 +10,35 @@
 {% block content %}
 <div class="container-fluid">
   <div class="row">
+
     <div class="col-md-4">
       <div class="card bg-dark text-white shadow-sm p-3 mb-3">
-        <h5>Total Issues:</h5>
+        <h5>ບັນຫາທັງໝົດ:</h5>
         <h3>{{ total_issues }}</h3>
       </div>
     </div>
+
     <div class="col-md-4">
       <div class="card bg-dark text-white shadow-sm p-3 mb-3">
-        <h5>Resolved Issues:</h5>
+        <h5>ບັນຫາທີແກ້ໄຂແລ້ວ:</h5>
         <h3>{{ resolved_issues }}</h3>
       </div>
     </div>
+
     <div class="col-md-4">
       <div class="card bg-dark text-white shadow-sm p-3 mb-3">
-        <h5>Avg. Resolution Time:</h5>
-        <h3>{{ avg_resolution_days }} days</h3>
+        <h5>ບັນຫາບໍ່ທັນໄດ້ຮັບການແກ້ໄຂ:</h5>
+        <h3>{{ unresolved_issues }}</h3>
       </div>
     </div>
+
   </div>
 
   <div class="row">
     <div class="col-md-6">
       <div class="card shadow-sm mb-4">
         <div class="card-body">
-          <h5>Issues by Status:</h5>
+          <h5>ບັນຫາຕາມສະຖານະ:</h5>
           <canvas id="statusChart"></canvas>
         </div>
       </div>
@@ -42,7 +46,7 @@
     <div class="col-md-6">
       <div class="card shadow-sm mb-4">
         <div class="card-body">
-          <h5>Issues by Priority:</h5>
+          <h5>ບັນຫາລຽງຕາມລຳດັບຄວາມສຳຄັນ:</h5>
           <canvas id="priorityChart"></canvas>
         </div>
       </div>

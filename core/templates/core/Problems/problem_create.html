@@ -3,14 +3,6 @@
 {% block content %}
 {% load widget_tweaks %}
 
-<style>
-    .long-input {
-    width: 80%;
-    max-width: 800px;
-}
-
-</style>
-
 <link rel="stylesheet" href="{% static 'css/problem_form.css' %}">
 
 <div class="container mt-5">
@@ -29,7 +21,6 @@
                 <label for="id_title" class="form-label fw-bold me-3" style="white-space: nowrap;">📝 Title:</label>
                 {{ form.title|add_class:"form-control long-input" }}
             </div>
-
 
             <div class="mb-3">
                 <label for="id_description" class="form-label fw-bold">📄Description:</label>
@@ -86,5 +77,4 @@
         preview.appendChild(list);
     });
 </script>
-
 {% endblock %}

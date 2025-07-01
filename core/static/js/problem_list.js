@@ -8,8 +8,8 @@ document.getElementById("profileIcon").addEventListener("click", function () {
 function confirmLogout(e) {
      e.preventDefault();
      Swal.fire({
-          title: 'Logout?',
-          text: "Are you sure you want to log out?",
+          title: 'ອອກຈາກລະບົບ?',
+          text: "ທ່ານຕ້ອງການອອກຈາກລະບົບບໍ່?",
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#007bff',

@@ -29,6 +29,7 @@ from django.urls import reverse
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 
+
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all().order_by('-created_at')
     serializer_class = ProblemSerializer
@@ -189,12 +190,20 @@ def logout_confirm_view(request):
         return redirect('login')
     return redirect('dashboard')
 
+
 #Function Manage Problem
 @login_required
 def problem_list(request):
+    status = request.GET.get('status')
     search_query = request.GET.get('search', '')
     selected_priority = request.GET.get('priority', '')
     problems = Problem.objects.all()
+    
+    if status == 'open':
+        problems = problems.filter(status='Open')
+    elif status == 'resolved':
+        problems = problems.filter(status='Resolved ✅')
+        
     # ✅ Search by problem_id OR title (case-insensitive)
     if search_query:
         problems = problems.filter(
@@ -207,6 +216,40 @@ def problem_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'core/Problems/problem_list.html', {
+        'problems': problems,
+        'selected_status': status,
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'selected_priority': selected_priority,
+    })
+    
+    
+@login_required
+def dashboard_problem_list(request):
+    status = request.GET.get('status')
+    search_query = request.GET.get('search', '')
+    selected_priority = request.GET.get('priority', '')
+    problems = Problem.objects.all()
+    
+    if status == 'open':
+        problems = problems.filter(status='Open')
+    elif status == 'resolved':
+        problems = problems.filter(status='Resolved ✅')
+        
+    # ✅ Search by problem_id OR title (case-insensitive)
+    if search_query:
+        problems = problems.filter(
+            Q(problem_id__icontains=search_query) | Q(title__icontains=search_query)
+        )
+    if selected_priority:
+        problems = problems.filter(priority=selected_priority)
+
+    paginator = Paginator(problems, 10) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'core/Dashboard/User_Management/dashboard_problem_list.html', {
+        'problems': problems,
+        'selected_status': status,
         'page_obj': page_obj,
         'search_query': search_query,
         'selected_priority': selected_priority,
@@ -239,7 +282,9 @@ def problem_detail(request, problem_id):
             if solution.is_final_solution:
                 problem.status = "Resolved ✅"
                 problem.save()
-            return redirect('problem_detail', problem_id=problem_id)
+            messages.success(request, "ສົ່ງຄຳຕອບສຳເລັດ ✅")
+            
+            return redirect('problem_list')
     else:
         form = SolutionForm()
     return render(request, 'core/Problems/problem_detail.html', {
@@ -269,15 +314,16 @@ def problem_create(request):
                     file=file,
                     uploaded_by=request.user
                 )
+            messages.success(request, "✅ ສຳເລັດ")
             return redirect('problem_list')
     else:
         form = ProblemForm()
         attachment_form = ProblemAttachmentForm()
-
     return render(request, 'core/Problems/problem_create.html', {
         'form': form,
         'attachment_form': attachment_form
     })
+
 
 # Function Create Solution
 @login_required
@@ -351,6 +397,7 @@ def dashboard_view(request):
         return HttpResponseForbidden("You have no permission to access this Page! 🚫")
     problems = Problem.objects.all()
     resolved_issues = problems.filter(status="Resolved ✅").count()
+    unresolved_issues = problems.exclude(status="Resolved ✅").count()
     # Calculate average resolution time from created_at to updated_at
     resolved_problems = problems.filter(
         status="Resolved ✅",
@@ -374,6 +421,7 @@ def dashboard_view(request):
     context = {
         'total_issues': problems.count(),
         'resolved_issues': resolved_issues,
+        'unresolved_issues': unresolved_issues,
         'avg_resolution_days': round(avg_days, 1),
         'status_labels': mark_safe(json.dumps([s['status'] for s in status_counts])),
         'status_data': mark_safe(json.dumps([s['count'] for s in status_counts])),

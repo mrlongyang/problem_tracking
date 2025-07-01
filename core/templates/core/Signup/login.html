@@ -5,8 +5,8 @@
 
 <div class="login-container">
     <div class="login-box">
-        <h2 class="login-title">🔐Login</h2>
-        <p class="login-subtitle">Welcome! Please login to your account.</p>
+        <h3 class="login-title">🔐ເຂົ້າສູ່ລະບົບ</h3>
+        <p class="login-subtitle">ຍິນດີຕ້ອນຮັບ! ກະລຸນາເຂົ້າສູ່ລະບົບດ້ວຍບັນຊີຂອງທ່ານ.</p>
 
         <form method="post">
             {% csrf_token %}
@@ -18,24 +18,24 @@
             {% endif %}
 
             <div class="form-group">
-                <label for="user_id">User ID:</label>
+                <label for="user_id">ລະຫັດພະນັກງານ:</label>
                 <div class="input-wrapper">
-                    <input type="text" name="user_id" id="user_id" placeholder="Enter your User ID" required>
+                    <input type="text" name="user_id" id="user_id" placeholder="ໃສ່ ID ຜູ້ໃຊ້ຂອງທ່ານ" required>
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="password">Password:</label>
+                <label for="password">ລະຫັດຜ່ານ:</label>
                 <div class="input-wrapper">
-                    <input type="password" name="password" id="passwordInput" placeholder="Enter your password" required>
+                    <input type="password" name="password" id="passwordInput" placeholder="ປ້ອນລະຫັດຜ່ານ" required>
                     <span class="toggle-password" onclick="togglePassword()">👁</span>
                 </div>
             </div>
 
-            <button type="submit" class="btn-login">Login</button>
+            <button type="submit" class="btn-login">ເຂົ້າສູ່ລະບົບ</button>
         </form>
 
-        <p class="register-link">Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+        <p class="register-link">ບໍ່ມີບັນຊີບໍ? <a href="{% url 'register' %}">ລົງທະບຽນ</a></p>
     </div>
 </div>
 

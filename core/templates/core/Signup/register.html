@@ -4,10 +4,12 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/register.css' %}">
 <script src="{% static 'js/register.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+
 
 <div class="register-container">
   <div class="register-card animate__animated animate__fadeInDown">
-    <h3 class="text-center mb-4">Create Your Account</h3>
+    <h3 class="text-center mb-4">ລົງທະບຽນ</h3>
 
     <form method="post">
       {% csrf_token %}
@@ -20,11 +22,11 @@
         {% endfor %}
       </div>
       {% endfor %}
-      <button type="submit" class="btn btn-primary w-100">Register</button>
+      <button type="submit" class="btn btn-primary w-100">ລົງທະບຽນ</button>
     </form>
 
     <div class="text-center mt-3">
-      <a href="{% url 'login' %}" class="text-light">Already have an account? Login</a>
+      <a href="{% url 'login' %}" class="text-light">ມີບັນຊີແລ້ວ? ເຂົ້າສູ່ລະບົບ</a>
     </div>
   </div>
 </div>

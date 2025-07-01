@@ -30,6 +30,7 @@ urlpatterns = [
 
     #Problem Url Rout
     path('problems/', views.problem_list, name='problem_list'),
+    path('dashboard_problem_list/', views.dashboard_problem_list, name='dashboard_problem_list'),
     path('problem/<str:problem_id>/', views.problem_detail, name='problem_detail'),
     path('problems/new/', views.problem_create, name='problem_create'),
     # urls.py
