@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config, Csv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -21,12 +22,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-o4b2_@c0+a%(auz_!jo!a5_#hwpfy(kej8mu&tsf4@078sxomr'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -85,17 +82,23 @@ WSGI_APPLICATION = 'problem_tracking.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases 
 
+
+SECRET_KEY = config('SECRET_KEY')
+
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'problem_tracking_db',
-        'USER': 'postgres',
-        'PASSWORD': 'tryappserv',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
-
 
 
 # Password validation
@@ -132,13 +135,23 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+BASE_DIR = Path(__file__).resolve().parent.parent
 
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'core/static'),
-]
+# Optional: only use this if you have local static folders in DEBUG
+if DEBUG:
+    STATICFILES_DIRS = [
+        BASE_DIR / 'core' / 'static',
+    ]
+
+    
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

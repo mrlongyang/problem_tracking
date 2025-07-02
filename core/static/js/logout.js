@@ -1,4 +1,5 @@
 // <!-- 🔒 Logout Confirmation with SweetAlert2 -->
+
 function confirmLogout(event) {
   event.preventDefault();
   Swal.fire({
@@ -8,8 +9,8 @@ function confirmLogout(event) {
     showCancelButton: true,
     confirmButtonColor: '#3085d6',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Yes, log out',
-    cancelButtonText: 'Cancel'
+    confirmButtonText: 'ອອກ',
+    cancelButtonText: 'ຍົກເລີກ'
   }).then((result) => {
     if (result.isConfirmed) {
       document.getElementById('logoutForm').submit();
