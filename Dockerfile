@@ -1,8 +1,9 @@
 FROM python:3.11-slim-bullseye
 
 # Environment settings
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=problem_tracking.settings
 
 # Install system-level dependencies with SSL support
 RUN apt-get update && apt-get install -y \
@@ -10,7 +11,8 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libssl-dev \
     libffi-dev \
-    && apt-get clean
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set workdir
 WORKDIR /app
@@ -23,8 +25,19 @@ RUN pip install --upgrade pip && \
 # Copy app code
 COPY . .
 
-# Collect static files (optional)
-RUN python manage.py collectstatic --noinput
+# Create necessary directories
+RUN mkdir -p /app/staticfiles /app/media
 
-# Run Gunicorn server
-CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Collect static files
+RUN python manage.py collectstatic --noinput || true
+
+# Create a non-root user
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
+EXPOSE 8000
+
+# Default command (can be overridden in docker-compose)
+CMD ["gunicorn", "problem_tracking.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
