@@ -18,6 +18,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -39,12 +40,14 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'core',
     'widget_tweaks',
+    'django_extensions',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8080',
+]
 
 AUTH_USER_MODEL = 'core.User' 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 LOGOUT_REDIRECT_URL = '/login/'
 
 
@@ -63,7 +66,7 @@ ROOT_URLCONF = 'problem_tracking.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Optional global templates 
+        'DIRS': [],  
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -135,23 +138,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Optional: only use this if you have local static folders in DEBUG
-if DEBUG:
-    STATICFILES_DIRS = [
-        BASE_DIR / 'core' / 'static',
-    ]
-
-    
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+
+
+STATICFILES_DIRS = [ ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

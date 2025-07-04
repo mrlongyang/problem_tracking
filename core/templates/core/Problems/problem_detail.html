@@ -19,13 +19,13 @@
   <div class="card shadow-lg">
     <div class="card-body">
       <h4 class="card-title text-primary">{{ problem.title }}</h4>
-      <p><strong>Module:</strong> {{ problem.module.module_name|default:"—" }}</p>
+      <p><strong>ໂມໂດລ:</strong> {{ problem.module.module_name|default:"—" }}</p>
       <p>
         <span class="badge bg-warning text-dark">Status: {{ problem.status }}</span>
         <span class="badge bg-info text-dark">Priority: {{ problem.priority }}</span>
       </p>
-      <p><strong>Department:</strong> {{ problem.department.department_name }}</p>
-      <p><strong>Description:</strong><br> {{ problem.description|linebreaks }}</p>
+      <p><strong>ຂະແໜງ:</strong> {{ problem.department.department_name }}</p>
+      <p><strong>ຄຳອະທິບາຍ:</strong><br> {{ problem.description|linebreaks }}</p>
       <p class="text-muted">
         Post By User: <strong>{{ problem.created_by.name|default:"Unknown" }}</strong>, ID:
         <STRONg>{{ problem.created_by.user_id }};</STRONg>
@@ -36,7 +36,7 @@
   </div>
 
   <div class="mt-4">
-    <h5>📎Attachments:</h5>
+    <h5>📎ໄຟລ໌ແນບ:</h5>
     <ul class="list-group list-group-flush">
       {% for att in problem.problemattachment_set.all %}
       <li class="list-group-item">
@@ -62,7 +62,7 @@
           {% for attachment in solution.attachments.all %}
           <li><a href="{{ attachment.file.url }}" target="_blank">📎Attachment</a></li>
           {% empty %}
-          <li>No attachments.</li>
+          <li>ບໍ່ມີໄຟລ໌ແນບ.</li>
           {% endfor %}
         </ul>
         <small class="text-muted">
@@ -72,20 +72,20 @@
       </div>
     </div>
     {% empty %}
-    <p class="text-muted">No Solutions Yet.</p>
+    <p class="text-muted">ບໍ່ທັນມີຄຳຕອບເທື່ອ.</p>
     {% endfor %}
   </div>
 
   <p><strong>ຈຳນວນຄັ້ງແກ້ໄຂ:</strong> {{ problem.solutions.count }}</p>
   <div class="mt-5">
-    <h5>📝Submit Your Solution:</h5>
+    <h5>📝ເພີ່ມວິທີການແກ້ໄຂບັນຫາຂອງທ່ານ:</h5>
     <form method="post" enctype="multipart/form-data" class="bg-light p-4 rounded shadow-sm"
       onsubmit="return showSubmitMessage()">
       {% csrf_token %}
       {{ form.as_p }}
       <label class="form-label">Attach Files:</label>
       <input type="file" name="attachments" multiple class="form-control mb-3">
-      <button type="submit" class="btn btn-success">✅ Submit Solution</button>
+      <button type="submit" class="btn btn-success">✅ ສົ່ງວິທີແກ້ໄຂ</button>
     </form>
   </div>
 

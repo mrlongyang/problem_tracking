@@ -174,7 +174,7 @@ def login_view(request):
             else:
                 return redirect('problem_list')
         else:
-            messages.error(request, 'Invalid user ID or password.')
+            messages.error(request, 'ID ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!.')
 
     return render(request, 'core/Signup/login.html')
 

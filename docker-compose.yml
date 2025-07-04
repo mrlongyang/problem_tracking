@@ -2,12 +2,12 @@ services:
   web:
     build: .
     command: gunicorn problem_tracking.wsgi:application --bind 0.0.0.0:8000
-
     volumes:
+      - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"  # ✅ expose internally to nginx, no need to bind to host port
     env_file: .env
     depends_on:
       - db
@@ -29,7 +29,7 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     ports:
-      - "80:80"
+      - "8080:80"  # ✅ expose nginx to your browser
     depends_on:
       - web
 

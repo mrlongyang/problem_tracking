@@ -3,55 +3,55 @@
 {% block content %}
 {% load widget_tweaks %}
 
-<link rel="stylesheet" href="{% static 'css/problem_form.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/problem_form.css' %}">
 
 <div class="container mt-5">
     <div class="card shadow p-4">
-        <h5 class="mb-4 text-primary">🛠️Create New Problem</h5>
+        <h5 class="mb-4 text-primary">🛠️ ເພີ່ມບັນຫາໃຫມ່</h5>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
             <!-- Django form fields -->
             <div class="mb-3">
-                <label for="id_problem_id" class="form-label fw-bold">🆔 Problem ID:</label>
+                <label for="id_problem_id" class="form-label fw-bold">🆔 ໄອດີບັນຫາ:</label>
                 {{ form.problem_id }}
             </div>
 
             <div class="mb-3 d-flex align-items-center">
-                <label for="id_title" class="form-label fw-bold me-3" style="white-space: nowrap;">📝 Title:</label>
+                <label for="id_title" class="form-label fw-bold me-3" style="white-space: nowrap;">📝 ຫົວຂໍ້:</label>
                 {{ form.title|add_class:"form-control long-input" }}
             </div>
 
             <div class="mb-3">
-                <label for="id_description" class="form-label fw-bold">📄Description:</label>
+                <label for="id_description" class="form-label fw-bold">📄 ຄຳອະທິບາຍ:</label>
                 {{ form.description }}
             </div>
 
             <div class="mb-3">
-                <label for="id_priority" class="form-label fw-bold">🚦Priority:</label>
+                <label for="id_priority" class="form-label fw-bold">🚦ເລືອກລຳດັບຄວາມສຳຄັນ:</label>
                 {{ form.priority }}
             </div>
 
             <div class="mb-3">
-                <label for="id_department" class="form-label fw-bold">🏢Department:</label>
+                <label for="id_department" class="form-label fw-bold">🏢 ເລືອກຂະແໜງ:</label>
                 {{ form.department }}
             </div>
 
             <div class="mb-3">
-                <label for="id_module" class="form-label fw-bold">📦Module:</label>
+                <label for="id_module" class="form-label fw-bold">📦 ເລືອກໂມໂດລ:</label>
                 {{ form.module }}
             </div>
 
             <!-- File input -->
             <div class="mb-3">
-                <label for="files" class="form-label fw-bold">📎Attachments:</label>
+                <label for="files" class="form-label fw-bold">📎ແນບໄຟລ໌:</label>
                 <input class="form-control" type="file" name="files" id="files" multiple>
                 <small class="form-text text-muted">You can select multiple files.</small>
                 <div id="file-preview" class="mt-2"></div>
             </div>
 
-            <button type="submit" class="btn btn-success">✅ Submit</button>
-            <a class="btn btn-secondary ms-2" href="{% url 'problem_list' %}">❌ Cancel</a>
+            <button type="submit" class="btn btn-success">✅ ສົ່ງ</button>
+            <a class="btn btn-secondary ms-2" href="{% url 'problem_list' %}">❌ ຍົກເລີກ</a>
         </form>
     </div>
 </div>

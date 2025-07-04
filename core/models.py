@@ -102,7 +102,7 @@ class Permission(models.Model):
 
 class User(AbstractBaseUser, PermissionsMixin):
     user_group = models.ForeignKey(UserGroup,on_delete=models.SET_NULL, null=True, blank=True)
-    user_id = models.CharField(primary_key=True, max_length=50, unique=True)
+    user_id = models.CharField(primary_key=True, max_length=255, unique=True)
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
