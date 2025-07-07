@@ -76,7 +76,7 @@ def user_create_view(request):
             return redirect('user_manager')
     else:
         form = UserForm()
-    return render(request, 'core/User_Management/user_form.html', {'form': form, 'title': 'Create User'})
+    return render(request, 'core/Dashboard/User_Management/user_form.html', {'form': form, 'title': 'Create User'})
 
 @login_required
 def user_detail_view(request, pk):

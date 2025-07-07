@@ -1,11 +1,11 @@
 @font-face {
   font-family: 'Phetsarath OT';
-  src: url('/static/fonts/PhetsarathOT.ttf') format('truetype');
+  src: url('/static/core/fonts/PhetsarathOT.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Saysettha OT';
-  src: url('/static/fonts/SaysetthaOT.ttf') format('truetype');
+  src: url('/static/core/fonts/SaysetthaOT.ttf') format('truetype');
 }
 
 body {

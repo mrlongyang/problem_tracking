@@ -4,6 +4,39 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<style>
+  .dark-mode {
+    background-color: #121212 !important;
+    color: #f1f1f1 !important;
+  }
+
+  .dark-mode .card {
+    background-color: #1e1e1e !important;
+    color: #f1f1f1 !important;
+  }
+
+  .dark-mode .form-control,
+  .dark-mode .btn,
+  .dark-mode .list-group-item {
+    background-color: #2c2c2c !important;
+    color: #f1f1f1 !important;
+    border-color: #444;
+  }
+
+  .dark-mode .btn-primary {
+    background-color: #0066cc;
+  }
+
+  .dark-mode .btn-secondary {
+    background-color: #444;
+  }
+
+  .dark-mode .form-check-label {
+    color: #f1f1f1 !important;
+  }
+</style>
+
+
 <div id="themeToggleWrapper" class="position-fixed top-0 end-0 p-3 z-3">
   <div class="form-check form-switch">
     <input class="form-check-input" type="checkbox" id="themeToggle">
@@ -47,7 +80,7 @@
         {% endif %}
       </li>
       {% empty %}
-      <li class="list-group-item text-muted">No attachments.</li>
+      <li class="list-group-item text-muted">ບໍ່ມີໄຟລ໌ແນບ.</li>
       {% endfor %}
     </ul>
   </div>
@@ -101,25 +134,6 @@
     });
   </script>
   {% endif %}
-
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const toggle = document.getElementById('themeToggle');
-      const body = document.body;
-
-      if (toggle) {
-        toggle.addEventListener('change', function () {
-          if (this.checked) {
-            body.classList.add('dark-mode');
-          } else {
-            body.classList.remove('dark-mode');
-          }
-        });
-      }
-    });
-  </script>
-
 
 
   <script>
