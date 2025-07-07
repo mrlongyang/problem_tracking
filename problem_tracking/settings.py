@@ -44,7 +44,7 @@ INSTALLED_APPS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8080',
+    'http://10.1.11.179:8081',
 ]
 
 AUTH_USER_MODEL = 'core.User' 
