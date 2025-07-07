@@ -19,3 +19,4 @@ db.sqlite3
 
 # Environment config
 .env
+dump-problem_tracking_db-202507041104.sql 
