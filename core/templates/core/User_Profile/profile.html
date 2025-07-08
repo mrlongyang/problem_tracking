@@ -16,7 +16,7 @@
 </div>
 
 <a href="{% url 'problem_list' %}" class="btn btn-secondary mb-3">ກັບຄືນ</a>
-<h4>Your Problems:</h4>
+<h4>ບັນຫາຂອງທ່ານ:</h4>
 
 <ul class="list-group">
   {% for prob in request.user.problem_set.all %}
