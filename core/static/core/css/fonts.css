@@ -4,13 +4,14 @@
 }
 
 @font-face {
-  font-family: 'Saysettha OT';
-  src: url('/static/core/fonts/SaysetthaOT.ttf') format('truetype');
+  font-family: 'Phetsarath OT';
+  src: url('/static/core/fonts/Phetsarath.ttf') format('truetype');
 }
 
 body {
-  font-family: 'Phetsarath OT', 'Saysettha OT', sans-serif;
+  font-family: 'Phetsarath OT';
 }
+
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Phetsarath OT', 'Saysettha OT', sans-serif;
+  font-family: 'Phetsarath OT';
 }
