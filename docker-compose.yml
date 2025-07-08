@@ -29,7 +29,7 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     ports:
-      - "8080:80"  # ✅ expose nginx to your browser
+      - "8081:80"  # ✅ expose nginx to your browser
     depends_on:
       - web
 
