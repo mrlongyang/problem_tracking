@@ -25,5 +25,3 @@ def problem_notification(request):
     'notification_count': unresolved_count,
     'latest_problem_link': latest_problem_link
     }
-
-
