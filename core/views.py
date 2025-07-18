@@ -28,7 +28,9 @@ from django.db.models import Q
 from django.urls import reverse
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-from django.utils.timezone import now 
+from django.utils.timezone import now
+# from django.db.models.functions import TruncDate
+
 
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all().order_by('-created_at')
@@ -190,6 +192,7 @@ def logout_confirm_view(request):
         return redirect('login')
     return redirect('dashboard')
 
+from django.db.models.functions import TruncDate
 
 #Function Manage Problem
 @login_required
@@ -198,16 +201,14 @@ def problem_list(request):
     search_query = request.GET.get('search', '')
     selected_priority = request.GET.get('priority', '')
     
-    # Report: Problems created today
-    today = now().date()
-    dalily_problem_count = Problem.objects.filter(created_at_date=today).count()
+    problems = Problem.objects.all().order_by('-created_at')
     
-    #Report: Top modules with the most problems
-    module_stats = (
-        Problem.objects.values('module_module_name')
-        .annotate(total=Count('id'))
-        .order_by('-total')[:5] # Top 5
-    )
+    # Group Problems by date (daily report)
+    daily_report = Problem.objects.annotate(
+        created_date=TruncDate('created_at')
+    ).values('created_date').annotate(
+        count=Count('id')
+    ).order_by('-created_date')
     
     problems = Problem.objects.all()
     
@@ -234,8 +235,7 @@ def problem_list(request):
         'page_obj': page_obj,
         'search_query': search_query,
         'selected_priority': selected_priority,
-        'dalily_problem_count': dalily_problem_count,
-        'module_stats': module_stats,
+        'daily_report': daily_report,
     })
     
     
@@ -413,6 +413,7 @@ def dashboard_view(request):
     problems = Problem.objects.all()
     resolved_issues = problems.filter(status="Resolved ✅").count()
     unresolved_issues = problems.exclude(status="Resolved ✅").count()
+    total_users = User.objects.count()
     # Calculate average resolution time from created_at to updated_at
     resolved_problems = problems.filter(
         status="Resolved ✅",
@@ -442,6 +443,7 @@ def dashboard_view(request):
         'status_data': mark_safe(json.dumps([s['count'] for s in status_counts])),
         'priority_labels': mark_safe(json.dumps([p['priority'] for p in priority_counts])),
         'priority_data': mark_safe(json.dumps([p['count'] for p in priority_counts])),
+        'total_users': total_users,
     }
     return render(request, 'core/Dashboard/User_Management/dashboard.html', context)
 
