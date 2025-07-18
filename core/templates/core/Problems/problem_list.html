@@ -44,79 +44,81 @@
 </style>
 
 <div class="sticky-top bg-white shadow-sm py-2 z-3">
-  <div class="container d-flex justify-content-between align-items-center">
+  <div class="container">
+    <div class="row align-items-center gy-3">
 
-    <form method="get" class="d-flex align-items-center gap-3">
-      <a href="{% url 'problem_create' %}" class="btn btn-primary d-flex align-items-center px-3"
-        style="white-space: nowrap; font-family: Phetsarath OT;">
-        ➕&nbsp;ບັນທຶກບັນຫາໃໝ່
-      </a>
-      <input type="text" name="search" class="form-control" placeholder="ຄົ້ນຫາບັນຫາ ..." value="{{ search_query }}"
-        style="min-width: 500px; max-width: 550px; font-family: Phetsarath OT;">
-    </form>
-
-    <ul class="list-group mb-4">
-      <h6>🏆 Top Modules with Most Problems:</h6>
-      <div class="btn-group mb-3-center"></div>
-      {% for item in daily_report %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ item.created_date }}
-        <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
-      </li>
-      {% endfor %}
-    </ul>
-
-    <div class="btn-group mb-3-center">
-      <a href="{% url 'problem_list' %}"
-        class="btn btn-outline-dark {% if not selected_status %}active{% endif %}">All</a>
-      <a href="?status=open{% if search_query %}&search={{ search_query }}{% endif %}"
-        class="btn btn-outline-danger {% if selected_status == 'open' %}active{% endif %}">Open 🟥</a>
-      <a href="?status=resolved{% if search_query %}&search={{ search_query }}{% endif %}"
-        class="btn btn-outline-success {% if selected_status == 'resolved' %}active{% endif %}">Resolved✅</a>
-    </div>
-
-    <div class="d-flex align-items-center gap-3">
-
-      <div class="dropdown mb-0">
-        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="priorityDropdownBtn"
-          data-bs-toggle="dropdown" aria-expanded="false">
-          {% if selected_priority %}Sort by: {{ selected_priority }}{% else %}Sort by: All{% endif %}
-        </button>
-
-        <ul class="dropdown-menu" aria-labelledby="priorityDropdownBtn">
-          <li><a class="dropdown-item" href="?{% if search_query %}search={{ search_query }}&{% endif %}">All</a></li>
-          <li><a class="dropdown-item"
-              href="?priority=Critical{% if search_query %}&search={{ search_query }}{% endif %}">Critical</a></li>
-          <li><a class="dropdown-item"
-              href="?priority=High{% if search_query %}&search={{ search_query }}{% endif %}">High</a></li>
-          <li><a class="dropdown-item"
-              href="?priority=Medium{% if search_query %}&search={{ search_query }}{% endif %}">Medium</a></li>
-          <li><a class="dropdown-item"
-              href="?priority=Low{% if search_query %}&search={{ search_query }}{% endif %}">Low</a>
-          </li>
-        </ul>
-
+      <!-- Left Section: Form -->
+      <div class="col-12 col-lg-5">
+        <form method="get" class="d-flex flex-wrap align-items-center gap-2">
+          <a href="{% url 'problem_create' %}" class="btn btn-primary px-3" style="white-space: nowrap; font-family: Phetsarath OT;">
+            ➕&nbsp;ບັນທຶກບັນຫາໃໝ່
+          </a>
+          <input type="text" name="search" class="form-control flex-grow-1" placeholder="ຄົ້ນຫາບັນຫາ ..." value="{{ search_query }}" style="font-family: Phetsarath OT; min-width: 200px;">
+        </form>
       </div>
 
-      <a class="nav-link position-relative" href="{{ latest_problem_link }}" style="font-family: Phetsarath OT;">
-        🔔 ການແຈ້ງເຕືອນ
-        {% if notification_count > 0 %}
-        <span class="notification-badge" style="font-family: Phetsarath OT;">{{ notification_count }}</span>
-        {% endif %}
-      </a>
+      <!-- Center Section: Daily Report -->
+      <div class="col-12 col-lg-3">
+        <h6>🏆 Top Modules with Most Problems:</h6>
+        <ul class="list-group mb-2">
+          {% for item in daily_report %}
+          <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
+            {{ item.created_date }}
+            <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
 
-      <div class="profile-menu">
-        <img src="{% static 'core/images/apb.jpg' %}" id="profileIcon" alt="Profile">
-        <div class="profile-dropdown" id="profileDropdown">
-          <a href="{% url 'profile_view' %}">ໂປຣໄຟລ໌</a>
-          <a href="{% url 'login' %}" onclick="confirmLogout(event)">ອອກຈາກລະບົບ</a>
+      <!-- Right Section: Filter, Notification, Profile -->
+      <div class="col-12 col-lg-4">
+        <div class="d-flex flex-wrap justify-content-end gap-2">
+
+          <!-- Status Buttons -->
+          <div class="btn-group">
+            <a href="{% url 'problem_list' %}" class="btn btn-outline-dark {% if not selected_status %}active{% endif %}">All</a>
+            <a href="?status=open{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-outline-danger {% if selected_status == 'open' %}active{% endif %}">Open 🟥</a>
+            <a href="?status=resolved{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-outline-success {% if selected_status == 'resolved' %}active{% endif %}">Resolved ✅</a>
+          </div>
+
+          <!-- Priority Dropdown -->
+          <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {% if selected_priority %}Sort by: {{ selected_priority }}{% else %}Sort by: All{% endif %}
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="?{% if search_query %}search={{ search_query }}&{% endif %}">All</a></li>
+              <li><a class="dropdown-item" href="?priority=Critical{% if search_query %}&search={{ search_query }}{% endif %}">Critical</a></li>
+              <li><a class="dropdown-item" href="?priority=High{% if search_query %}&search={{ search_query }}{% endif %}">High</a></li>
+              <li><a class="dropdown-item" href="?priority=Medium{% if search_query %}&search={{ search_query }}{% endif %}">Medium</a></li>
+              <li><a class="dropdown-item" href="?priority=Low{% if search_query %}&search={{ search_query }}{% endif %}">Low</a></li>
+            </ul>
+          </div>
+
+          <!-- Notification -->
+          <a class="nav-link position-relative" href="{{ latest_problem_link }}" style="font-family: Phetsarath OT;">
+            🔔 ການແຈ້ງເຕືອນ
+            {% if notification_count > 0 %}
+            <span class="notification-badge">{{ notification_count }}</span>
+            {% endif %}
+          </a>
+
+          <!-- Profile -->
+          <div class="profile-menu">
+            <img src="{% static 'core/images/apb.jpg' %}" id="profileIcon" alt="Profile">
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="{% url 'profile_view' %}">ໂປຣໄຟລ໌</a>
+              <a href="{% url 'login' %}" onclick="confirmLogout(event)">ອອກຈາກລະບົບ</a>
+            </div>
+          </div>
+
         </div>
       </div>
 
     </div>
-
   </div>
 </div>
+
 
 <table class="table table-striped" id="problemTable">
   <thead>
