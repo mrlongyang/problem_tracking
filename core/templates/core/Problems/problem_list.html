@@ -55,21 +55,16 @@
         style="min-width: 500px; max-width: 800px; font-family: Phetsarath OT;">
     </form>
 
-    <div class="card mb-4">
-      <div class="card-body">
-
-        <h6>🏆 Top Modules with Most Problems:</h6>
-        <ul class="list-group mb-4">
-          {% for item in daily_report %}
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ item.created_date }}
-            <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-
+    <ul class="list-group mb-4">
+      <h6>🏆 Top Modules with Most Problems:</h6>
+      <div class="btn-group mb-3-center"></div>
+      {% for item in daily_report %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ item.created_date }}
+        <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
+      </li>
+      {% endfor %}
+    </ul>
 
     <div class="btn-group mb-3-center">
       <a href="{% url 'problem_list' %}"
