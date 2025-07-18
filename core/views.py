@@ -207,7 +207,7 @@ def problem_list(request):
     daily_report = Problem.objects.annotate(
         created_date=TruncDate('created_at')
     ).values('created_date').annotate(
-        count=Count('id')
+        count=Count('problem_id')
     ).order_by('-created_date')
     
     problems = Problem.objects.all()
