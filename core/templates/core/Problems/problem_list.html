@@ -15,17 +15,21 @@
 
   .error-description-text {
     text-transform: uppercase;
-    color: #007bff; /* Blue color */
+    color: #007bff;
+    /* Blue color */
     font-weight: bold;
     /* text-align: justify; <--- REMOVE THIS LINE */
-    text-align: left; /* Or just let it be the default */
+    text-align: left;
+    /* Or just let it be the default */
   }
 
   .error-details-text {
     text-transform: lowercase;
-    color: #28a745; /* Green color */
+    color: #28a745;
+    /* Green color */
     /* text-align: justify; <--- REMOVE THIS LINE */
-    text-align: left; /* Or just let it be the default */
+    text-align: left;
+    /* Or just let it be the default */
     font-weight: bold;
   }
 
@@ -33,6 +37,7 @@
   .error-description-text a::before {
     content: "";
   }
+
   .error-description-text a::after {
     content: "";
   }
@@ -49,6 +54,26 @@
       <input type="text" name="search" class="form-control" placeholder="ຄົ້ນຫາບັນຫາ ..." value="{{ search_query }}"
         style="min-width: 500px; max-width: 800px; font-family: Phetsarath OT;">
     </form>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">📊 Problem Reports</h5>
+        <p>🗓️ Problems reported today: <strong>{{ daily_problem_count }}</strong></p>
+
+        <h6>🏆 Top Modules with Most Problems:</h6>
+        <ul class="list-group">
+          {% for m in module_stats %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ m.module__module_name }}
+            <span class="badge bg-danger rounded-pill">{{ m.total }}</span>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted">No data</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
 
     <div class="btn-group mb-3-center">
       <a href="{% url 'problem_list' %}"
@@ -83,7 +108,7 @@
       </div>
 
       <a class="nav-link position-relative" href="{{ latest_problem_link }}" style="font-family: Phetsarath OT;">
-        🔔 ການແຈ້ງເຕືອນ 
+        🔔 ການແຈ້ງເຕືອນ
         {% if notification_count > 0 %}
         <span class="notification-badge" style="font-family: Phetsarath OT;">{{ notification_count }}</span>
         {% endif %}
@@ -142,7 +167,7 @@
         href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_priority %}&priority={{ selected_priority }}{% endif %}">
         <span style="font-family: 'Phetsarath OT', sans-serif;">⏮️ ໜ້າກ່ອນຫນ້ານີ້</span></a>
     </li>
-    
+
     {% endif %}
 
     {% for num in page_obj.paginator.page_range %}
@@ -190,18 +215,18 @@
 </form>
 
 {% if messages %}
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link rel="stylesheet" href="{% static 'core/css/fonts.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="{% static 'core/css/fonts.css' %}">
 
-  {% for message in messages %}
-  <script>
-    Swal.fire({
-      icon: 'success',
-      text: "{{ message|escapejs }}",
-      confirmButtonText: 'OK'
-    });
-  </script>
-  {% endfor %}
+{% for message in messages %}
+<script>
+  Swal.fire({
+    icon: 'success',
+    text: "{{ message|escapejs }}",
+    confirmButtonText: 'OK'
+  });
+</script>
+{% endfor %}
 {% endif %}
 
 {% endblock %}

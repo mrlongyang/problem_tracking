@@ -28,7 +28,7 @@ from django.db.models import Q
 from django.urls import reverse
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-
+from django.utils.timezone import now 
 
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all().order_by('-created_at')
@@ -197,6 +197,18 @@ def problem_list(request):
     status = request.GET.get('status')
     search_query = request.GET.get('search', '')
     selected_priority = request.GET.get('priority', '')
+    
+    # Report: Problems created today
+    today = now().date()
+    dalily_problem_count = Problem.objects.filter(created_at_date=today).count()
+    
+    #Report: Top modules with the most problems
+    module_stats = (
+        Problem.objects.values('module_module_name')
+        .annotate(total=Count('id'))
+        .order_by('-total')[:5] # Top 5
+    )
+    
     problems = Problem.objects.all()
     
     if status == 'open':
@@ -215,12 +227,15 @@ def problem_list(request):
     paginator = Paginator(problems, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
     return render(request, 'core/Problems/problem_list.html', {
         'problems': problems,
         'selected_status': status,
         'page_obj': page_obj,
         'search_query': search_query,
         'selected_priority': selected_priority,
+        'dalily_problem_count': dalily_problem_count,
+        'module_stats': module_stats,
     })
     
     

@@ -9,6 +9,7 @@ A web-based system to track and resolve technical issues across departments.
 - Solution tracking and resolution
 - Dashboard with stats and charts
 - Role-based access
+- User Role && Permission
 - Dockerized setup
 
 ## 🐳 Running the Project with Docker
