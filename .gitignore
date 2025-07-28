@@ -18,5 +18,11 @@ db.sqlite3
 .idea/
 
 # Environment config
+
+# .gitignore
+*.sqlite3
+*.db
+*.sql
 .env
 dump-problem_tracking_db-202507041104.sql 
+__pycache__/

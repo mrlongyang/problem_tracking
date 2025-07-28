@@ -95,8 +95,10 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 # New
 # Load environment type (local or docker)
-ENV = config('ENV', default='local')
-DB_HOST = config('DB_HOST_DOCKER') if ENV == 'docker' else config('DB_HOST_LOCAL')
+
+ENV = config('ENV', default='docker')
+
+DB_HOST = config('DB_HOST_DOCKER')
 
 DATABASES = {
     'default': {
@@ -104,8 +106,7 @@ DATABASES = {
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
-        # 'HOST': config('DB_HOST', default='localhost'),
-        'HOST': DB_HOST,   #new update
+        'HOST': DB_HOST,
         'PORT': config('DB_PORT', default='5432'),
     }
 }
