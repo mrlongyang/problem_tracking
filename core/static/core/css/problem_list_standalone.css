@@ -1,0 +1,23 @@
+.notification-badge {
+     position: absolute;
+     top: -8px;
+     right: -10px;
+     background-color: red;
+     color: white;
+     padding: 2px 6px;
+     font-size: 12px;
+     border-radius: 50%;
+}
+
+.dropdown .btn,
+.nav-link.position-relative {
+     padding-top: 6px;
+     padding-bottom: 6px;
+     display: flex;
+     align-items: center;
+     height: 40px;
+}
+
+th {
+     white-space: nowrap;
+}

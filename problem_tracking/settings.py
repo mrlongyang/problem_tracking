@@ -84,11 +84,19 @@ WSGI_APPLICATION = 'problem_tracking.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases 
 
 
+
+
+
 SECRET_KEY = config('SECRET_KEY')
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+
+# New
+# Load environment type (local or docker)
+ENV = config('ENV', default='local')
+DB_HOST = config('DB_HOST_DOCKER') if ENV == 'docker' else config('DB_HOST_LOCAL')
 
 DATABASES = {
     'default': {
@@ -96,7 +104,8 @@ DATABASES = {
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='localhost'),
+        # 'HOST': config('DB_HOST', default='localhost'),
+        'HOST': DB_HOST,   #new update
         'PORT': config('DB_PORT', default='5432'),
     }
 }

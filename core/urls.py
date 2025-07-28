@@ -50,5 +50,11 @@ urlpatterns = [
     path('api-token-auth/', CustomAuthToken.as_view(), name='custom_api_token_auth'),
     
     path('ajax/search-problems/', views.ajax_search_problems, name='ajax_search_problems'),
+    
+    
+    
+    # export pdf
+    path('problems/export/pdf/', views.export_problems_pdf, name='export_problems_pdf'),
+
 
 ]

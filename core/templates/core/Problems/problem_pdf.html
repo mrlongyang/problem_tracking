@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Problem Report PDF</title>
+    <style>
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 6px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>📋 Problem Report</h2>
+
+    <!-- ✅ show Date range if provided -->
+    {% if start_date and end_date %}
+    <p><strong>📅 Filter From:</strong> {{ start_date|date:"d/m/Y" }} <strong>To</strong> {{ end_date|date:"d/m/Y" }} </p>
+    {% else %}
+    <p><strong>Date Range:</strong>All</p>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID:</th>
+                <th>Description:</th>
+                <th>Details:</th>
+                <th>Module:</th>
+                <th>Status:</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% if problems %}
+            {% for problem in problems %}
+            <tr>
+                <td>{{ problem.problem_id }}</td>
+                <td>{{ problem.title }}</td>
+                <td>{{ problem.description }}</td>
+                <td>{{ problem.module.module_name }}</td>
+                <td>{{ problem.status }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; font-style: italic; color: #888;">
+                    No problems found for the selected filters.
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+
+    </table>
+</body>
+
+</html>

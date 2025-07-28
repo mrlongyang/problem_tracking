@@ -7,7 +7,7 @@
 
 <div class="container mt-5">
     <div class="card shadow p-4">
-        <h5 class="mb-4 text-primary">🛠️ ເພີ່ມບັນຫາໃຫມ່</h5>
+        <h5 class="mb-4 text-primary">🛠️ ບັນທຶກບັນຫາໃໝ່</h5>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
@@ -50,11 +50,28 @@
                 <div id="file-preview" class="mt-2"></div>
             </div>
 
-            <button type="submit" class="btn btn-success">✅ ສົ່ງ</button>
+            <button type="submit" class="btn btn-success">✅ ບັນທຶກວິທີແກ້ໄຂ</button>
             <a class="btn btn-secondary ms-2" href="{% url 'problem_list' %}">❌ ຍົກເລີກ</a>
         </form>
     </div>
 </div>
+
+{% if messages %}
+  {% for message in messages %}
+    {% if forloop.first %}
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <script>
+        Swal.fire({
+          title: '🎉 Success!',
+          text: "{{ message }}",
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+      </script>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
 
 <!-- JS for file preview -->
 <script>

@@ -2,50 +2,52 @@
 {% load static %}
 {% block title %}Dashboard{% endblock %}
 
-
 {% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  .card:hover {
+    transform: scale(1.02);
+    transition: 0.3s ease-in-out;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-  <div class="row">
-
+  <div class="row text-white">
     <div class="col-md-4">
-      <div class="card bg-dark text-white shadow-sm p-3 mb-3">
-        <h5>ບັນຫາທັງໝົດ:</h5>
+      <div class="card bg-primary shadow-sm p-3 mb-3">
+        <h5><i class="fas fa-tasks me-2"></i>All Problems</h5>
         <h3>{{ total_issues }}</h3>
       </div>
     </div>
-
     <div class="col-md-4">
-      <div class="card bg-dark text-white shadow-sm p-3 mb-3">
-        <h5>ບັນຫາທີແກ້ໄຂແລ້ວ:</h5>
+      <div class="card bg-success shadow-sm p-3 mb-3">
+        <h5><i class="fas fa-check-circle me-2"></i>Resolved Problems</h5>
         <h3>{{ resolved_issues }}</h3>
       </div>
     </div>
-
     <div class="col-md-4">
-      <div class="card bg-dark text-white shadow-sm p-3 mb-3">
-        <h5>ບັນຫາບໍ່ທັນໄດ້ຮັບການແກ້ໄຂ:</h5>
+      <div class="card bg-danger shadow-sm p-3 mb-3">
+        <h5><i class="fas fa-exclamation-circle me-2"></i>Unresolved Problems</h5>
         <h3>{{ unresolved_issues }}</h3>
       </div>
     </div>
-
     <div class="col-md-4">
-      <div class="card bg-dark text-white shadow-sm p-3 mb-3">
-        <h5>ຈຳນວນຜູ້ໃຊ້ທັງໝົດ​:</h5>
+      <div class="card bg-info shadow-sm p-3 mb-3">
+        <h5><i class="fas fa-users me-2"></i>All Users</h5>
         <h3>{{ total_users }}</h3>
       </div>
     </div>
-
   </div>
 
   <div class="row">
     <div class="col-md-6">
       <div class="card shadow-sm mb-4">
         <div class="card-body">
-          <h5>ບັນຫາຕາມສະຖານະ:</h5>
+          <h5><i class="fas fa-chart-pie me-2"></i>Status</h5>
           <canvas id="statusChart"></canvas>
         </div>
       </div>
@@ -53,13 +55,24 @@
     <div class="col-md-6">
       <div class="card shadow-sm mb-4">
         <div class="card-body">
-          <h5>ບັນຫາລຽງຕາມລຳດັບຄວາມສຳຄັນ:</h5>
+          <h5><i class="fas fa-signal me-2"></i>Problem by Priority</h5>
           <canvas id="priorityChart"></canvas>
         </div>
       </div>
     </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5><i class="fas fa-calendar-alt me-2"></i>Monthly Problem Trends</h5>
+            <canvas id="monthlyChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
-</div>
 
 <script id="chart-data" type="application/json">
 {
@@ -70,11 +83,17 @@
   "priority": {
     "labels": {{ priority_labels|safe }},
     "data": {{ priority_data|safe }}
+  },
+  "monthly": {
+    "labels": {{ monthly_labels|safe }},
+    "data": {{ monthly_data|safe }}
   }
 }
 </script>
-{% endblock %}
 
+
+
+{% endblock %}
 {% block extra_scripts %}
 <script src="{% static 'core/js/dashboard.js' %}"></script>
 {% endblock %}

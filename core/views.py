@@ -29,7 +29,15 @@ from django.urls import reverse
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils.timezone import now
-# from django.db.models.functions import TruncDate
+from django.db.models.functions import TruncDate
+from django.db.models.functions import TruncMonth
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+from django.http import HttpResponse
+from io import BytesIO 
+from django.utils.dateparse import parse_date
+from datetime import datetime
+
 
 
 class ProblemViewSet(viewsets.ModelViewSet):
@@ -192,53 +200,168 @@ def logout_confirm_view(request):
         return redirect('login')
     return redirect('dashboard')
 
-from django.db.models.functions import TruncDate
 
-#Function Manage Problem
+# Function Problem List
 @login_required
 def problem_list(request):
     status = request.GET.get('status')
     search_query = request.GET.get('search', '')
     selected_priority = request.GET.get('priority', '')
-    
+    selected_module = request.GET.get('module')
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+
+    # ✅ Start with all problems
     problems = Problem.objects.all().order_by('-created_at')
+
+    # 📅 Filter by date range
+    if start_date_str and end_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            problems = problems.filter(created_at__date__range=(start_date, end_date))
+        except ValueError:
+            messages.error(request, "Invalid date format. Use YYYY-MM-DD.")
+            return redirect('problem_list')
+
+    # 📦 Filter by module
+    if selected_module:
+        problems = problems.filter(module__module_name=selected_module)
+
+    # ✅ Filter by status
+    if status == 'open':
+        problems = problems.filter(status__icontains='open')
+    elif status == 'resolved':
+        problems = problems.filter(status__icontains='resolved')
+
+    # ✅ Filter by search
+    if search_query:
+        problems = problems.filter(
+            Q(problem_id__icontains=search_query) |
+            Q(title__icontains=search_query)
+        )
+
+    # ✅ Filter by priority
+    if selected_priority:
+        problems = problems.filter(priority=selected_priority)
+
+    # 📊 Top modules for dropdown
+    module_report = Problem.objects.values('module__module_name') \
+        .annotate(count=Count('problem_id')) \
+        .order_by('-count')[:5]
+
+    # ✅ Handle AJAX auto search
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        filtered = problems.values('problem_id', 'title', 'description')
+        return JsonResponse({"results": list(filtered)})
     
-    # Group Problems by date (daily report)
-    daily_report = Problem.objects.annotate(
-        created_date=TruncDate('created_at')
-    ).values('created_date').annotate(
-        count=Count('problem_id')
-    ).order_by('-created_date')
     
+    if start_date_str and end_date_str and start_date_str != 'None' and end_date_str != 'None':
+        try:
+            if start_date_str and end_date_str and start_date_str != 'None' and end_date_str != 'None':
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            problems = problems.filter(created_at__date__range=(start_date, end_date))
+        except ValueError:
+            messages.error(request, "Invalid date format.")
+            return redirect('problem_list')
+    
+
+    # 🔢 Pagination
+    paginator = Paginator(problems, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Stats
+    total_issues = problems.count()
+    resolved_count = Problem.objects.filter(status__icontains='resolved').count()
+    open_count = Problem.objects.filter(status__icontains='open').count()
+
+    return render(request, 'core/Problems/problem_list_standalone.html', {
+        'problems': problems,
+        'page_obj': page_obj,
+        'selected_status': status,
+        'selected_priority': selected_priority,
+        'selected_module': selected_module,
+        'search_query': search_query,
+        'start_date': start_date_str,
+        'end_date': end_date_str,
+        'module_report': module_report,
+        'total_issues': total_issues,
+        'resolved_count': resolved_count,
+        'open_count': open_count,
+    })
+
+
+# Export PDF Function
+def export_problems_pdf(request):
+    status = request.GET.get('status')
+    search_query = request.GET.get('search', '')
+    selected_priority = request.GET.get('priority', '')
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+    selected_module = request.GET.get('module')
+
     problems = Problem.objects.all()
-    
+
+    # ✅ Filter by status
     if status == 'open':
         problems = problems.filter(status='Open')
     elif status == 'resolved':
         problems = problems.filter(status='Resolved ✅')
-        
-    # ✅ Search by problem_id OR title (case-insensitive)
+
+    # ✅ Filter by search
     if search_query:
         problems = problems.filter(
-            Q(problem_id__icontains=search_query) | Q(title__icontains=search_query)
+            Q(problem_id__icontains=search_query) |
+            Q(title__icontains=search_query)
         )
+
+    # ✅ Filter by priority
     if selected_priority:
         problems = problems.filter(priority=selected_priority)
 
-    paginator = Paginator(problems, 10) 
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    # ✅ Filter by module
+    if selected_module and selected_module != 'None':
+        problems = problems.filter(module__module_name__iexact=selected_module)
+
     
-    return render(request, 'core/Problems/problem_list.html', {
+    # ✅ Filter by valid start and end dates
+    parsed_start_date = None 
+    parsed_end_date = None
+    
+    try:
+        if start_date_str and end_date_str and start_date_str != 'None' and end_date_str != 'None':
+            parsed_start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            parsed_end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            problems = problems.filter(created_at__date__range=(parsed_start_date, parsed_end_date))
+    except ValueError:
+        messages.error(request, "Invalid date format.")
+        return redirect('problem_list')
+
+    # ✅ Render PDF
+    template = get_template('core/Problems/problem_pdf.html')
+    
+    
+    context = {
         'problems': problems,
-        'selected_status': status,
-        'page_obj': page_obj,
-        'search_query': search_query,
-        'selected_priority': selected_priority,
-        'daily_report': daily_report,
-    })
+        'start_date': parsed_start_date,
+        'end_date': parsed_end_date,
+    }
     
+    html = template.render(context)
     
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="filtered_problems_report.pdf"'
+
+    pisa_status = pisa.CreatePDF(html, dest=response, encoding='utf-8')
+
+    if pisa_status.err:
+        return HttpResponse('PDF export error ❌')
+    return response
+
+
+# Function Dashboard Problem List
 @login_required
 def dashboard_problem_list(request):
     status = request.GET.get('status')
@@ -259,7 +382,7 @@ def dashboard_problem_list(request):
     if selected_priority:
         problems = problems.filter(priority=selected_priority)
 
-    paginator = Paginator(problems, 10) 
+    paginator = Paginator(problems, 20) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'core/Dashboard/User_Management/dashboard_problem_list.html', {
@@ -271,6 +394,7 @@ def dashboard_problem_list(request):
     })
 
 
+# Function Problem Detail
 @login_required
 def problem_detail(request, problem_id):
     problem = get_object_or_404(Problem, problem_id=problem_id)
@@ -297,7 +421,7 @@ def problem_detail(request, problem_id):
             if solution.is_final_solution:
                 problem.status = "Resolved ✅"
                 problem.save()
-            messages.success(request, "ສົ່ງຄຳຕອບສຳເລັດ ✅")
+            messages.success(request, "ບັນທຶກວິທີແກ້ໄຂບັນຫາສຳເລັດ ✅")
             
             return redirect('problem_list')
     else:
@@ -311,6 +435,7 @@ def problem_detail(request, problem_id):
     })
 
 
+# Function Create Problem
 @login_required
 def problem_create(request):
     if request.method == 'POST':
@@ -329,7 +454,7 @@ def problem_create(request):
                     file=file,
                     uploaded_by=request.user
                 )
-            messages.success(request, "✅ ສຳເລັດ")
+            messages.success(request, "✅ ສຳເລັດ", extra_tags="from_create")
             return redirect('problem_list')
     else:
         form = ProblemForm()
@@ -420,6 +545,17 @@ def dashboard_view(request):
         created_at__isnull=False,
         updated_at__isnull=False
     )
+    
+    monthly_data = (
+        Problem.objects
+        .annotate(month=TruncMonth('created_at'))
+        .values('month')
+        .annotate(total=Count('problem_id'))
+        .order_by('month')
+    )
+    
+    months = [item['month'].strftime("%b %Y") for item in monthly_data]
+    counts = [item['total'] for item in monthly_data]
 
     if resolved_problems.exists():
         total_days = sum(
@@ -444,10 +580,13 @@ def dashboard_view(request):
         'priority_labels': mark_safe(json.dumps([p['priority'] for p in priority_counts])),
         'priority_data': mark_safe(json.dumps([p['count'] for p in priority_counts])),
         'total_users': total_users,
+        'monthly_labels': months,
+        'monthly_data': counts,
     }
     return render(request, 'core/Dashboard/User_Management/dashboard.html', context)
 
 
+# Function Settings
 @login_required
 def settings_view(request):
     # Example settings logic: handle user profile update

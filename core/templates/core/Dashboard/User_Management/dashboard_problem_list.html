@@ -40,18 +40,18 @@
     <form method="get" class="d-flex align-items-center gap-3">
       <a href="{% url 'problem_create' %}" class="btn btn-primary d-flex align-items-center px-3"
         style="white-space: nowrap;">
-        ➕&nbsp;ສ້າງບັນຫາໃໝ່
+        ➕&nbsp;ບັນທຶກບັນຫາໃໝ່
       </a>
       <input type="text" name="search" class="form-control" placeholder="ຄົ້ນຫາບັນຫາ ..." value="{{ search_query }}"
         style="min-width: 450px; max-width: 800px;">
     </form>
 
     <div class="btn-group mb-3-center">
-      <a href="{% url 'dashboard_problem_list' %}" class="btn btn-outline-dark {% if not selected_status %}active{% endif %}">All</a>
+      <a href="{% url 'dashboard_problem_list' %}" class="btn btn-outline-dark {% if not selected_status %}active{% endif %}">ທັງໝົດ</a>
       <a href="?status=open{% if search_query %}&search={{ search_query }}{% endif %}"
-        class="btn btn-outline-danger {% if selected_status == 'open' %}active{% endif %}">Open 🟥</a>
+        class="btn btn-outline-danger {% if selected_status == 'open' %}active{% endif %}">ຍັງບໍ່ທັນແກ້ໄຂ 🟥</a>
       <a href="?status=resolved{% if search_query %}&search={{ search_query }}{% endif %}"
-        class="btn btn-outline-success {% if selected_status == 'resolved' %}active{% endif %}">Resolved ✅
+        class="btn btn-outline-success {% if selected_status == 'resolved' %}active{% endif %}">ແກ້ໄຂແລ້ວ ✅
       </a>
     </div>
 
@@ -65,15 +65,15 @@
         </button>
 
         <ul class="dropdown-menu" aria-labelledby="priorityDropdownBtn">
-          <li><a class="dropdown-item" href="?{% if search_query %}search={{ search_query }}&{% endif %}">All</a></li>
+          <li><a class="dropdown-item" href="?{% if search_query %}search={{ search_query }}&{% endif %}">ທັງໝົດ</a></li>
           <li><a class="dropdown-item"
-              href="?priority=Critical{% if search_query %}&search={{ search_query }}{% endif %}">Critical</a></li>
+              href="?priority=Critical{% if search_query %}&search={{ search_query }}{% endif %}">ສຳຄັນ</a></li>
           <li><a class="dropdown-item"
-              href="?priority=High{% if search_query %}&search={{ search_query }}{% endif %}">High</a></li>
+              href="?priority=High{% if search_query %}&search={{ search_query }}{% endif %}">ສູງ</a></li>
           <li><a class="dropdown-item"
-              href="?priority=Medium{% if search_query %}&search={{ search_query }}{% endif %}">Medium</a></li>
+              href="?priority=Medium{% if search_query %}&search={{ search_query }}{% endif %}">ປານກາງ</a></li>
           <li><a class="dropdown-item"
-              href="?priority=Low{% if search_query %}&search={{ search_query }}{% endif %}">Low</a>
+              href="?priority=Low{% if search_query %}&search={{ search_query }}{% endif %}">ຕໍ່າ</a>
           </li>
         </ul>
 
