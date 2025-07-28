@@ -98,7 +98,8 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ENV = config('ENV', default='docker')
 
-DB_HOST = config('DB_HOST_DOCKER')
+DB_HOST = config('DB_HOST_DOCKER', default='db')
+
 
 DATABASES = {
     'default': {
