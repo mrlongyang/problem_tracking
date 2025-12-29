@@ -91,6 +91,8 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+ALLOWED_HOSTS = ['10.1.11.179', 'localhost', '127.0.0.1']
+
 
 # New
 # Load environment type (local or docker)
