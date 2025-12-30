@@ -209,24 +209,12 @@
                                         <td>{{ problem.status }}</td>
                                         <td>{{ problem.department.department_name }}</td>
                                         <td>{{ problem.updated_at|date:"SHORT_DATETIME_FORMAT" }}</td>
-                                        <td>
-                                             <div class="d-flex gap-1">
-                                             <a href="{% url 'problem_detail' problem_id=problem.problem_id %}" 
-                                                  class="btn btn-sm btn-primary">
-                                                  👁️ View
-                                             </a>
-                                             
-                                             <a href="{% url 'problem_edit' problem_id=problem.problem_id %}" 
-                                                  class="btn btn-sm btn-warning">
-                                                  ✏️ Edit
-                                             </a>
-                                             
-                                             <a href="{% url 'problem_delete' problem_id=problem.problem_id %}" 
-                                                  class="btn btn-danger btn-sm"
-                                                  onclick="return confirmDelete();">
-                                                  🗑️ Delete
-                                             </a>
-                                             </div>
+                                        <td class="text-nowrap">
+                                             <a href="{% url 'problem_detail' problem_id=problem.problem_id %}" class="btn btn-sm btn-primary">👁️ View</a>
+
+                                             <a href="{% url 'problem_edit' problem_id=problem.problem_id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+
+                                             <button class="btn btn-sm btn-danger" onclick="confirmDelete('{{ problem.problem_id }}')">🗑️ Delete</button>
                                         </td>
 
                                    </tr>
@@ -367,10 +355,37 @@
      {% endif %}
 
      <script>
-     function confirmDelete() {
-          return confirm("🗑️ Are you sure you want to delete this problem?");
+     function confirmDelete(problemId) {
+          Swal.fire({
+               title: 'ທ່ານແນ່ໃຈບໍ?',
+               text: "ຂໍ້ມູນນີ້ຈະຖືກລົບຖາວອນ!",
+               icon: 'warning',
+               showCancelButton: true,
+               confirmButtonColor: '#d33',
+               cancelButtonColor: '#3085d6',
+               confirmButtonText: 'ລົບ!',
+               cancelButtonText: 'ຍົກເລີກ'
+          }).then((result) => {
+               if (result.isConfirmed) {
+                    // Create and submit hidden form
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/problems/${problemId}/delete/`;
+
+                    const csrfToken = '{{ csrf_token }}';
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'csrfmiddlewaretoken';
+                    input.value = csrfToken;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+               }
+          });
      }
      </script>
+
 
 
      <script>
@@ -383,6 +398,23 @@
 
      <!-- Scripts -->
      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+     <!-- SweetAlert2 JS -->
+     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+     <!-- SweetAlert message after success -->
+          {% if messages %}
+          <script>
+          Swal.fire({
+          icon: 'success',
+          title: 'ສຳເລັດ!',
+          text: '{{ messages|first }}',
+          timer: 2000,
+          showConfirmButton: false
+     });
+     </script>
+     {% endif %}
+
+
 </body>
 
 </html>
