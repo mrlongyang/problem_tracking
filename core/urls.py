@@ -30,8 +30,8 @@ urlpatterns = [
 
     #Problem Url Rout
     path('problems/', views.problem_list, name='problem_list'),
-    path('problems/<str:pk>/edit/', views.problem_edit, name='problem_edit'),
-    path('problems/<str:pk>/delete/', views.problem_delete, name='problem_delete'),
+    path('problems/<str:problem_id>/edit/', views.problem_edit, name='problem_edit'),
+    path('problems/<str:problem_id>/delete/', views.problem_delete, name='problem_delete'),
     path('dashboard_problem_list/', views.dashboard_problem_list, name='dashboard_problem_list'),
     path('problem/<str:problem_id>/', views.problem_detail, name='problem_detail'),
     path('problems/new/', views.problem_create, name='problem_create'),

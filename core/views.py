@@ -296,8 +296,8 @@ def problem_list(request):
     
 # Edit problem record
 @login_required
-def problem_edit(request, pk):
-    problem = get_object_or_404(Problem, pk=pk)
+def problem_edit(request, problem_id):
+    problem = get_object_or_404(Problem, problem_id=problem_id)
     
     if request.method == 'POST':
         form = ProblemForm(request.POST, instance=problem)
@@ -315,8 +315,8 @@ def problem_edit(request, pk):
     
 # Delete Problem Function
 @login_required
-def problem_delete(request, pk):
-    problem = get_object_or_404(Problem, pk=pk)
+def problem_delete(request, problem_id):
+    problem = get_object_or_404(Problem, problem_id=problem_id)
     
     if request.method == 'POST':
         problem.delete()
