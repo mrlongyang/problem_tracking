@@ -398,20 +398,21 @@
 
      <!-- Scripts -->
      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-     <!-- SweetAlert2 JS -->
+     <!-- SweetAlert2 -->
      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-     <!-- SweetAlert message after success -->
-          {% if messages %}
-          <script>
+     {% if messages %}
+     {% for message in messages %}
+     <script>
           Swal.fire({
-          icon: 'success',
-          title: 'ສຳເລັດ!',
-          text: '{{ messages|first }}',
-          timer: 2000,
-          showConfirmButton: false
-     });
+               icon: '{{ message.tags|default:"success" }}',
+               title: 'ສຳເລັດ!',
+               text: '{{ message }}',
+               timer: 2000,
+               showConfirmButton: false
+          });
      </script>
+     {% endfor %}
      {% endif %}
 
 
