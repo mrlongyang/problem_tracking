@@ -1,0 +1,7 @@
+<h2>ຢືນຍັນ</h2>
+<p>ທ່ານຕ້ອງການລົບລາຍການນີ້ບໍ?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">ລົບ</button>
+    <a href="{% url 'problem_list'%}">ຍົກເລິກ</a>
+</form>

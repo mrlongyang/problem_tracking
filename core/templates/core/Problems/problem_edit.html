@@ -1,0 +1,7 @@
+<h2>ແກ້ໄຂບັນຫາ</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">ອັບເດດ</button>
+    <a href="{% url 'problem_list'%}">ຍົກເລິກ</a>
+</form>

@@ -291,6 +291,41 @@ def problem_list(request):
         'resolved_count': resolved_count,
         'open_count': open_count,
     })
+    
+    
+    
+# Edit problem record
+@login_required
+def problem_edit(request, pk):
+    problem = get_object_or_404(Problem, pk=pk)
+    
+    if request.method == 'POST':
+        form = ProblemForm(request.POST, instance=problem)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "ແກ້ໄຂບັນຫາສຳເລັດ ✅")
+            return redirect('problem_list')
+    else:
+        form = ProblemForm(instance=problem)
+    return render(request, 'core/Problems/problem_edit.html', {
+        'form': form,
+        'problem': problem
+    })
+    
+    
+# Delete Problem Function
+@login_required
+def problem_delete(request, pk):
+    problem = get_object_or_404(Problem, pk=pk)
+    
+    if request.method == 'POST':
+        problem.delete()
+        messages.success(request, "ລົບສຳເລັດ ✅")
+        return redirect('problem_list')
+    
+    return render(request, 'core/Problems/problem_confirm_delete.html', {
+        'problem': problem
+    })
 
 
 # Export PDF Function

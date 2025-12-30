@@ -209,6 +209,8 @@
                                         <td>{{ problem.status }}</td>
                                         <td>{{ problem.department.department_name }}</td>
                                         <td>{{ problem.updated_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+                                        <a href="{% url 'problem_edit' pk=problem.pk %}">ແກ້ໄຂ</a>
+                                        <a href="{% url 'problem_delete' pk=problem.pk %}">ລົບ</a>
                                    </tr>
                                    {% empty %}
                                    <tr>

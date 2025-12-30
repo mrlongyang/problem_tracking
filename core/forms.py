@@ -69,3 +69,9 @@ class AttachmentUploadForm(forms.Form):
         widget=MultiFileInput(attrs={'multiple': True}),
         required=False
     )
+
+
+class ProblemForm(forms.ModelForm):
+    class Meta:
+        model = Problem
+        fields = ['problem_id', 'title', 'description', 'priority', 'department', 'module']
