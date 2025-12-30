@@ -210,11 +210,23 @@
                                         <td>{{ problem.department.department_name }}</td>
                                         <td>{{ problem.updated_at|date:"SHORT_DATETIME_FORMAT" }}</td>
                                         <td>
-                                             <a href="{% url 'problem_detail' pk=problem.pk %}" class="btn btn-sm btn-primary mb-1">👁️ View</a>
-                                             <a href="{% url 'problem_edit' pk=problem.pk %}" class="btn btn-sm btn-warning mb-1">✏️ Edit</a>
-                                             <a href="{% url 'problem_delete' pk=problem.pk %}" class="btn btn-sm btn-danger mb-1" 
-                                                  onclick="return confirm('Are you sure you want to delete this problem?');">🗑️ Delete</a>
+                                             <a href="{% url 'problem_detail' problem_id=problem.problem_id %}"
+                                                  class="btn btn-sm btn-primary mb-1">
+                                                  👁️ View
+                                             </a>
+
+                                             <a href="{% url 'problem_edit' problem_id=problem.problem_id %}"
+                                                  class="btn btn-sm btn-warning mb-1">
+                                                  ✏️ Edit
+                                             </a>
+
+                                             <a href="{% url 'problem_delete' problem_id=problem.problem_id %}"
+                                                  class="btn btn-sm btn-danger mb-1"
+                                                  onclick="return confirm('Are you sure you want to delete this problem?');">
+                                                  🗑️ Delete
+                                             </a>
                                         </td>
+
                                    </tr>
                                    {% empty %}
                                    <tr>
