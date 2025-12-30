@@ -300,7 +300,7 @@ def problem_edit(request, problem_id):
     problem = get_object_or_404(Problem, problem_id=problem_id)
     
     if request.method == 'POST':
-        form = ProblemForm(request.POST, request.FILES, instance=problem)
+        form = ProblemForm(request.POST, instance=problem)
         if form.is_valid():
             form.save()
             messages.success(request, "ແກ້ໄຂບັນຫາສຳເລັດ ✅")
@@ -308,9 +308,13 @@ def problem_edit(request, problem_id):
     else:
         form = ProblemForm(instance=problem)
         
+    
+    attachments = ProblemAttachment.objects.filter(problem=problem)
+    
     return render(request, 'core/Problems/problem_edit.html', {
         'form': form,
-        'problem': problem
+        'problem': problem,
+        'attachments': attachments,
     })
     
     
