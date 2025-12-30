@@ -367,16 +367,17 @@
      {% endif %}
 
      <script>
+     function confirmDelete() {
+          return confirm("🗑️ Are you sure you want to delete this problem?");
+     }
+     </script>
+
+
+     <script>
           function showLogoutModal(event) {
                event.preventDefault();
                const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
                modal.show();
-          }
-     </script>
-
-     <script>
-          function confirmDelete() {
-               return confirm('Are you sure you want to delete this problem?');
           }
      </script>
 
