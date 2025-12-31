@@ -5,10 +5,6 @@
     font-style: normal;
 }
 
-body, input, textarea, button, select {
-    font-family: 'Phetsarath OT', sans-serif;
-}
-
 /* Apply globally */
 body, input, textarea, button, select, h1, h2, h3, h4, h5, h6, label, a, p, span, div {
     font-family: 'Phetsarath OT', sans-serif;
