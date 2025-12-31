@@ -210,11 +210,11 @@
                                         <td>{{ problem.department.department_name }}</td>
                                         <td>{{ problem.updated_at|date:"SHORT_DATETIME_FORMAT" }}</td>
                                         <td class="text-nowrap">
-                                             <a href="{% url 'problem_detail' problem_id=problem.problem_id %}" class="btn btn-sm btn-primary">👁️ View</a>
+                                             <a href="{% url 'problem_detail' problem_id=problem.problem_id %}" class="btn btn-sm btn-primary">👁️ ເບິ່ງ</a>
 
-                                             <a href="{% url 'problem_edit' problem_id=problem.problem_id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+                                             <a href="{% url 'problem_edit' problem_id=problem.problem_id %}" class="btn btn-sm btn-warning">✏️ ແກ້ໄຂ</a>
 
-                                             <button class="btn btn-sm btn-danger" onclick="confirmDelete('{{ problem.problem_id }}')">🗑️ Delete</button>
+                                             <button class="btn btn-sm btn-danger" onclick="confirmDelete('{{ problem.problem_id }}')">🗑️ ລົບ</button>
                                         </td>
 
                                    </tr>
