@@ -431,3 +431,322 @@ class ProblemTag(models.Model):
     class Meta:
         verbose_name = "ProblemTag"              
         verbose_name_plural = "ProblemTag"
+        
+        
+        
+class KnowledgeGuide(models.Model):
+    """
+    Represents one logical troubleshooting guide.
+
+    Examples:
+    - AI Troubleshooting Guide
+    - AML Troubleshooting Guide
+    - BP Cash Management Guide
+    """
+
+    guide_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
+    title = models.CharField(
+        max_length=255,
+    )
+
+    module = models.ForeignKey(
+        Module,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="knowledge_guides",
+    )
+
+    description = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_knowledge_guides",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["title"]
+        verbose_name = "Knowledge Guide"
+        verbose_name_plural = "Knowledge Guides"
+
+    def __str__(self):
+        return self.title
+
+
+class KnowledgeGuideVersion(models.Model):
+    """
+    Stores each uploaded version of a guide.
+
+    Example:
+    AI Guide v1.0
+    AI Guide v1.1
+    AI Guide v2.0
+    """
+
+    STATUS_CHOICES = [
+        ("processing", "Processing"),
+        ("completed", "Completed"),
+        ("partial", "Completed With Errors"),
+        ("failed", "Failed"),
+    ]
+
+    version_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
+    guide = models.ForeignKey(
+        KnowledgeGuide,
+        on_delete=models.CASCADE,
+        related_name="versions",
+    )
+
+    version_number = models.CharField(
+        max_length=30,
+        default="1.0",
+    )
+
+    source_file = models.FileField(
+        upload_to="knowledge_guides/%Y/%m/",
+    )
+
+    original_file_name = models.CharField(
+        max_length=255,
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="processing",
+    )
+
+    total_articles = models.PositiveIntegerField(
+        default=0,
+    )
+
+    imported_articles = models.PositiveIntegerField(
+        default=0,
+    )
+
+    skipped_articles = models.PositiveIntegerField(
+        default=0,
+    )
+
+    failed_articles = models.PositiveIntegerField(
+        default=0,
+    )
+
+    import_log = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="uploaded_knowledge_versions",
+    )
+
+    uploaded_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["-uploaded_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["guide", "version_number"],
+                name="unique_knowledge_guide_version",
+            )
+        ]
+        verbose_name = "Knowledge Guide Version"
+        verbose_name_plural = "Knowledge Guide Versions"
+
+    def __str__(self):
+        return f"{self.guide.title} v{self.version_number}"
+
+
+class KnowledgeArticle(models.Model):
+    """
+    One error or troubleshooting item extracted from a guide.
+    """
+
+    article_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
+    guide_version = models.ForeignKey(
+        KnowledgeGuideVersion,
+        on_delete=models.CASCADE,
+        related_name="articles",
+    )
+
+    module = models.ForeignKey(
+        Module,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="knowledge_articles",
+    )
+
+    error_code = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        db_index=True,
+    )
+
+    title = models.CharField(
+        max_length=500,
+    )
+
+    function_name = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+    )
+
+    transaction_code = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        db_index=True,
+    )
+
+    root_cause = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    resolution = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    source_page = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    is_published = models.BooleanField(
+        default=True,
+    )
+
+    view_count = models.PositiveIntegerField(
+        default=0,
+    )
+
+    helpful_count = models.PositiveIntegerField(
+        default=0,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["error_code", "title"]
+        indexes = [
+            models.Index(fields=["error_code"]),
+            models.Index(fields=["transaction_code"]),
+            models.Index(fields=["is_published"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "guide_version",
+                    "error_code",
+                    "title",
+                ],
+                name="unique_article_per_guide_version",
+            )
+        ]
+        verbose_name = "Knowledge Article"
+        verbose_name_plural = "Knowledge Articles"
+
+    def __str__(self):
+        if self.error_code:
+            return f"{self.error_code} - {self.title}"
+
+        return self.title
+
+
+class KnowledgeArticleImage(models.Model):
+    """
+    Screenshots extracted from the Word document.
+    """
+
+    image_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
+    article = models.ForeignKey(
+        KnowledgeArticle,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+
+    image = models.ImageField(
+        upload_to="knowledge_articles/%Y/%m/",
+    )
+
+    caption = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    display_order = models.PositiveIntegerField(
+        default=0,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ["display_order", "created_at"]
+        verbose_name = "Knowledge Article Image"
+        verbose_name_plural = "Knowledge Article Images"
+
+    def __str__(self):
+        return f"Image for {self.article}"

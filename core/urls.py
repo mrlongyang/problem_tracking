@@ -59,4 +59,28 @@ urlpatterns = [
     
     path("problems/import-guide/", views.import_guide, name="import_guide",),
     
+    path(
+    "knowledge/",
+    views.knowledge_center,
+    name="knowledge_center",
+    ),
+
+    path(
+        "knowledge/upload/",
+        views.knowledge_guide_upload,
+        name="knowledge_guide_upload",
+    ),
+
+    path(
+        "knowledge/articles/<uuid:article_id>/",
+        views.knowledge_article_detail,
+        name="knowledge_article_detail",
+    ),
+    
+    path(
+        "knowledge/versions/<uuid:version_id>/reimport/",
+        views.knowledge_guide_reimport,
+        name="knowledge_guide_reimport",
+    ),
+    
 ]

@@ -37,7 +37,6 @@ import json
 from core.forms import RegisterForm
 from django import forms
 from django.core.paginator import Paginator
-from django.db.models import Q
 from django.urls import reverse
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -51,8 +50,21 @@ from io import BytesIO
 from django.utils.dateparse import parse_date
 from datetime import datetime
 from .forms import ImportGuideForm
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
 from django.shortcuts import redirect, render
+from .forms import KnowledgeGuideUploadForm
+from .models import (
+    Problem,
+    Module,
+    KnowledgeGuide,
+    KnowledgeGuideVersion,
+    KnowledgeArticle,
+    KnowledgeArticleImage,
+)
+
+from .services.knowledge_import_service import (
+    import_guide_version,
+)
 
 
 
@@ -297,22 +309,6 @@ def problem_list(request):
                 "Invalid end date format.",
             )
             return redirect("problem_list")
-
-    # AJAX live search
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        filtered = problems.values(
-            "problem_id",
-            "title",
-            "description",
-            "module__module_name",
-            "status",
-            "department__department_name",
-            "updated_at",
-        )
-
-        return JsonResponse({
-            "results": list(filtered),
-        })
 
     # Module report
     module_report = []
@@ -1061,4 +1057,359 @@ def import_guide(request):
         request,
         "core/Problems/import_guide.html",
         {"form": form},
+    )
+
+    
+@login_required
+def knowledge_article_detail(request, article_id):
+    article = get_object_or_404(
+        KnowledgeArticle.objects.select_related(
+            "module",
+            "guide_version",
+            "guide_version__guide",
+        ).prefetch_related("images"),
+        article_id=article_id,
+    )
+
+    KnowledgeArticle.objects.filter(
+        article_id=article.article_id
+    ).update(
+        view_count=F("view_count") + 1
+    )
+
+    article.refresh_from_db(
+        fields=["view_count"]
+    )
+
+    return render(
+        request,
+        "core/Knowledge/knowledge_article_detail.html",
+        {
+            "article": article,
+        },
+    )
+    
+@login_required
+def knowledge_guide_upload(request):
+    if request.method == "POST":
+        form = KnowledgeGuideUploadForm(
+            request.POST,
+            request.FILES,
+        )
+
+        if form.is_valid():
+            guide_title = (
+                form.cleaned_data["guide_title"]
+            )
+
+            selected_module = (
+                form.cleaned_data["module"]
+            )
+
+            version_number = (
+                form.cleaned_data["version_number"]
+            )
+
+            guide, created = (
+                KnowledgeGuide.objects.get_or_create(
+                    title=guide_title,
+                    module=selected_module,
+                    defaults={
+                        "created_by": request.user,
+                    },
+                )
+            )
+
+            version_exists = (
+                KnowledgeGuideVersion.objects
+                .filter(
+                    guide=guide,
+                    version_number=version_number,
+                )
+                .exists()
+            )
+
+            if version_exists:
+                form.add_error(
+                    "version_number",
+                    (
+                        "This version already exists "
+                        "for this guide."
+                    ),
+                )
+
+            else:
+                guide_version = form.save(
+                    commit=False
+                )
+
+                guide_version.guide = guide
+
+                guide_version.original_file_name = (
+                    request.FILES[
+                        "source_file"
+                    ].name
+                )
+
+                guide_version.uploaded_by = (
+                    request.user
+                )
+
+                guide_version.status = "processing"
+
+                guide_version.save()
+
+                try:
+                    result = import_guide_version(
+                        guide_version
+                    )
+
+                    messages.success(
+                        request,
+                        (
+                            "Guide import completed. "
+                            f"Detected: {result['total']}, "
+                            f"Imported: {result['imported']}, "
+                            f"Updated: "
+                            f"{result.get('updated', 0)}, "
+                            f"Images: "
+                            f"{result.get('images', 0)}, "
+                            f"Failed: {result['failed']}."
+                        ),
+                    )
+
+                except Exception as exc:
+                    guide_version.status = "failed"
+                    guide_version.import_log = str(exc)
+
+                    guide_version.save(
+                        update_fields=[
+                            "status",
+                            "import_log",
+                        ]
+                    )
+
+                    messages.error(
+                        request,
+                        (
+                            "Guide uploaded, but "
+                            f"extraction failed: {exc}"
+                        ),
+                    )
+
+                return redirect(
+                    "knowledge_center"
+                )
+
+    else:
+        form = KnowledgeGuideUploadForm()
+
+    return render(
+        request,
+        "core/Knowledge/"
+        "knowledge_guide_upload.html",
+        {
+            "form": form,
+        },
+    )
+    
+@login_required
+def knowledge_center(request):
+    search_query = request.GET.get(
+        "search",
+        "",
+    ).strip()
+
+    selected_module = request.GET.get(
+        "module",
+        "",
+    ).strip()
+
+    articles = (
+        KnowledgeArticle.objects
+        .select_related(
+            "module",
+            "guide_version",
+            "guide_version__guide",
+        )
+        .filter(is_published=True)
+        .order_by("-updated_at")
+    )
+    
+    print(
+    "AJAX header:",
+    request.headers.get("X-Requested-With"),
+    )
+
+    if search_query:
+        articles = articles.filter(
+            Q(error_code__icontains=search_query)
+            | Q(title__icontains=search_query)
+            | Q(function_name__icontains=search_query)
+            | Q(transaction_code__icontains=search_query)
+            | Q(root_cause__icontains=search_query)
+            | Q(resolution__icontains=search_query)
+        )
+
+    if selected_module:
+        articles = articles.filter(
+            module__module_name__iexact=selected_module
+        )
+
+    total_articles = articles.count()
+    
+    paginator = Paginator(
+        articles,
+        20,
+    )
+    
+    page_obj = paginator.get_page(
+        request.GET.get("page")
+    )
+
+    # AJAX live-search response
+    if request.headers.get(
+        "X-Requested-With"
+    ) == "XMLHttpRequest":
+
+        results = []
+
+        for article in articles[:100]:
+            results.append({
+                "article_id": str(
+                    article.article_id
+                ),
+                "error_code": (
+                    article.error_code or ""
+                ),
+                "title": (
+                    article.title or ""
+                ),
+                "function_name": (
+                    article.function_name or ""
+                ),
+                "module": (
+                    article.module.module_name
+                    if article.module
+                    else ""
+                ),
+                "transaction_code": (
+                    article.transaction_code or ""
+                ),
+                "view_count": article.view_count,
+            })
+
+        return JsonResponse({
+            "results": results,
+            "total": total_articles,
+            "pagination": {
+                "current_page": page_obj.number,
+                "total_pages": paginator.num_pages,
+                "has_previous": page_obj.has_previous(),
+                "has_next": page_obj.has_next(),
+                "previous_page_number": (
+                    page_obj.previous_page_number()
+                    if page_obj.has_previous()
+                    else None
+                ),
+                "next_page_number": (
+                    page_obj.next_page_number()
+                    if page_obj.has_next()
+                    else None
+                ),
+            }
+        })
+    
+    recent_versions = (
+        KnowledgeGuideVersion.objects
+        .select_related(
+            "guide",
+            "guide__module",
+        )
+        .order_by("-uploaded_at")[:10]
+    )
+
+    recent_versions = (
+        KnowledgeGuideVersion.objects
+        .select_related(
+            "guide",
+            "guide__module",
+        )
+        .order_by("-uploaded_at")[:10]
+    )
+
+    module_report = (
+        Module.objects
+        .annotate(
+            article_count=Count(
+                "knowledge_articles"
+            )
+        )
+        .order_by("module_name")
+    )
+
+    context = {
+        "recent_versions": recent_versions,
+        "page_obj": page_obj,
+        "search_query": search_query,
+        "selected_module": selected_module,
+        "module_report": module_report,
+        "total_articles": total_articles,
+        "total_guides": (
+            KnowledgeGuide.objects.count()
+        ),
+        "total_versions": (
+            KnowledgeGuideVersion.objects.count()
+        ),
+    }
+
+    return render(
+        request,
+        "core/Knowledge/knowledge_center.html",
+        context,
+    )
+    
+    
+@login_required
+def knowledge_guide_reimport(
+    request,
+    version_id,
+):
+    guide_version = get_object_or_404(
+        KnowledgeGuideVersion,
+        version_id=version_id,
+    )
+
+    if request.method != "POST":
+        return redirect(
+            "knowledge_center"
+        )
+
+    try:
+        result = import_guide_version(
+            guide_version
+        )
+
+        messages.success(
+            request,
+            (
+                "Re-import completed. "
+                f"Detected: {result['total']}, "
+                f"Imported: {result['imported']}, "
+                f"Updated: "
+                f"{result.get('updated', 0)}, "
+                f"Images: "
+                f"{result.get('images', 0)}, "
+                f"Failed: {result['failed']}."
+            ),
+        )
+
+    except Exception as exc:
+        messages.error(
+            request,
+            f"Re-import failed: {exc}",
+        )
+
+    return redirect(
+        "knowledge_center"
     )

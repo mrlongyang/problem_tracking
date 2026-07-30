@@ -5,6 +5,8 @@ from django.forms.widgets import FileInput
 
 from .models import (
     Problem,
+    Module,
+    KnowledgeGuideVersion,  
     Solution,
     ProblemAttachment,
     SolutionAttachment,
@@ -12,8 +14,8 @@ from .models import (
 )
 
 
-User = get_user_model()
 
+User = get_user_model()
 
 class ProblemForm(forms.ModelForm):
     class Meta:
@@ -358,6 +360,121 @@ class ImportGuideForm(forms.Form):
         if uploaded_file.size > max_size:
             raise forms.ValidationError(
                 "The file must not be larger than 10 MB."
+            )
+
+        return uploaded_file
+
+class KnowledgeGuideUploadForm(forms.ModelForm):
+    guide_title = forms.CharField(
+        max_length=255,
+        label="Guide Title",
+    )
+
+    module = forms.ModelChoiceField(
+        queryset=Module.objects.all().order_by("module_name"),
+        required=False,
+    )
+
+    class Meta:
+        model = KnowledgeGuideVersion
+        fields = [
+            "guide_title",
+            "module",
+            "version_number",
+            "source_file",
+        ]
+
+        widgets = {
+            "version_number": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Example: 1.0",
+                }
+            ),
+            "source_file": forms.ClearableFileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": ".docx",
+                }
+            ),
+        }
+
+    def clean_source_file(self):
+        uploaded_file = self.cleaned_data["source_file"]
+
+        if not uploaded_file.name.lower().endswith(".docx"):
+            raise forms.ValidationError(
+                "Only Word .docx files are supported."
+            )
+
+        return uploaded_file
+    
+class KnowledgeGuideUploadForm(forms.ModelForm):
+    guide_title = forms.CharField(
+        max_length=255,
+        label="Guide Title",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Example: AI Troubleshooting Guide",
+            }
+        ),
+    )
+
+    module = forms.ModelChoiceField(
+        queryset=Module.objects.all().order_by("module_name"),
+        required=False,
+        empty_label="Select Module",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+    )
+
+    class Meta:
+        model = KnowledgeGuideVersion
+
+        fields = [
+            "guide_title",
+            "module",
+            "version_number",
+            "source_file",
+        ]
+
+        widgets = {
+            "version_number": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Example: 1.0",
+                }
+            ),
+            "source_file": forms.ClearableFileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": ".docx",
+                }
+            ),
+        }
+
+    def clean_source_file(self):
+        uploaded_file = self.cleaned_data.get("source_file")
+
+        if not uploaded_file:
+            raise forms.ValidationError(
+                "Please select a Word document."
+            )
+
+        if not uploaded_file.name.lower().endswith(".docx"):
+            raise forms.ValidationError(
+                "Only .docx Word documents are supported."
+            )
+
+        max_size = 30 * 1024 * 1024
+
+        if uploaded_file.size > max_size:
+            raise forms.ValidationError(
+                "The uploaded file must not exceed 30 MB."
             )
 
         return uploaded_file

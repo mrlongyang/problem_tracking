@@ -1,0 +1,501 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="lo">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        {{ article.error_code|default:"Knowledge Article" }}
+        - {{ article.title }}
+    </title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'core/css/fonts.css' %}"
+    >
+
+    <style>
+        :root {
+            --page-background: #f4f7fc;
+            --surface: #ffffff;
+            --text-primary: #172033;
+            --text-muted: #718096;
+            --primary: #315efb;
+            --border: #e7ebf3;
+            --cause-background: #fff5f5;
+            --cause-border: #e25555;
+            --resolution-background: #f0faf4;
+            --resolution-border: #32a86a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--page-background);
+            color: var(--text-primary);
+        }
+
+        .article-wrapper {
+            width: 100%;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 36px 20px 60px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .article-card {
+            margin-top: 24px;
+            padding: 32px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(20, 35, 80, 0.07);
+        }
+
+        .article-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+        }
+
+        .error-code {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 12px;
+            margin-bottom: 12px;
+            color: var(--primary);
+            background: #eef2ff;
+            border-radius: 999px;
+            font-family: Consolas, monospace;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .article-title {
+            margin: 0;
+            font-size: clamp(26px, 4vw, 38px);
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .article-meta-right {
+            flex-shrink: 0;
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .article-divider {
+            margin: 26px 0;
+            border-color: var(--border);
+            opacity: 1;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .metadata-card {
+            min-height: 92px;
+            padding: 17px;
+            background: #f8faff;
+            border: 1px solid #edf0f6;
+            border-radius: 14px;
+        }
+
+        .metadata-label {
+            display: block;
+            margin-bottom: 7px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .metadata-value {
+            color: var(--text-primary);
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .section-block {
+            margin-top: 22px;
+            padding: 24px;
+            border-radius: 15px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            font-size: 19px;
+            font-weight: 800;
+        }
+
+        .section-content {
+            margin-top: 16px;
+            line-height: 1.75;
+            overflow-wrap: anywhere;
+        }
+
+        .section-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .empty-section-text {
+            margin: 0;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .cause-block {
+            background: var(--cause-background);
+            border-left: 5px solid var(--cause-border);
+        }
+
+        .resolution-block {
+            background: var(--resolution-background);
+            border-left: 5px solid var(--resolution-border);
+        }
+
+        .screenshots-section {
+            margin-top: 32px;
+        }
+
+        .screenshots-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .screenshots-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 26px;
+            height: 26px;
+            padding: 0 8px;
+            color: var(--primary);
+            background: #eef2ff;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .article-screenshot-card {
+            margin: 0 0 24px;
+            padding: 16px;
+            background: #f8fafc;
+            border: 1px solid #e4e9f2;
+            border-radius: 16px;
+        }
+
+        .article-screenshot-link {
+            display: block;
+            text-decoration: none;
+        }
+
+        .article-image {
+            display: block;
+            width: 100%;
+            max-height: 760px;
+            object-fit: contain;
+            background: #ffffff;
+            border: 1px solid #e4e8ef;
+            border-radius: 12px;
+            cursor: zoom-in;
+        }
+
+        .image-caption {
+            margin-top: 10px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .article-source {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-top: 30px;
+            padding-top: 20px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .source-badge {
+            padding: 5px 9px;
+            color: #475569;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .article-wrapper {
+                padding: 20px 12px 40px;
+            }
+
+            .article-card {
+                padding: 22px 16px;
+                border-radius: 16px;
+            }
+
+            .article-header {
+                flex-direction: column;
+            }
+
+            .article-meta-right {
+                text-align: left;
+            }
+
+            .metadata-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-block {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="article-wrapper">
+
+    <a
+        href="{% url 'knowledge_center' %}"
+        class="back-link"
+    >
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Knowledge Center
+    </a>
+
+    <article class="article-card">
+
+        <header class="article-header">
+
+            <div>
+                <div class="error-code">
+                    <i class="fa-solid fa-code me-2"></i>
+
+                    {{ article.error_code|default:"Knowledge Article" }}
+                </div>
+
+                <h1 class="article-title">
+                    {{ article.title }}
+                </h1>
+            </div>
+
+            <div class="article-meta-right">
+                <div>
+                    <i class="fa-regular fa-eye me-1"></i>
+                    {{ article.view_count }} view{{ article.view_count|pluralize }}
+                </div>
+
+                <div class="mt-1">
+                    <i class="fa-regular fa-clock me-1"></i>
+                    Updated {{ article.updated_at|date:"M d, Y H:i" }}
+                </div>
+            </div>
+
+        </header>
+
+        <hr class="article-divider">
+
+        <section class="metadata-grid">
+
+            <div class="metadata-card">
+                <span class="metadata-label">
+                    Module
+                </span>
+
+                <div class="metadata-value">
+                    {% if article.module %}
+                        {{ article.module.module_name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="metadata-card">
+                <span class="metadata-label">
+                    Function
+                </span>
+
+                <div class="metadata-value">
+                    {{ article.function_name|default:"-" }}
+                </div>
+            </div>
+
+            <div class="metadata-card">
+                <span class="metadata-label">
+                    Transaction Code
+                </span>
+
+                <div class="metadata-value">
+                    {{ article.transaction_code|default:"-" }}
+                </div>
+            </div>
+
+        </section>
+
+        <section class="section-block cause-block">
+
+            <h2 class="section-title">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                Root Cause
+            </h2>
+
+            <div class="section-content">
+                {% if article.root_cause %}
+                    {{ article.root_cause|linebreaks }}
+                {% else %}
+                    <p class="empty-section-text">
+                        Root cause was not provided.
+                    </p>
+                {% endif %}
+            </div>
+
+        </section>
+
+        <section class="section-block resolution-block">
+
+            <h2 class="section-title">
+                <i class="fa-solid fa-circle-check"></i>
+                Resolution
+            </h2>
+
+            <div class="section-content">
+                {% if article.resolution %}
+                    {{ article.resolution|linebreaks }}
+                {% else %}
+                    <p class="empty-section-text">
+                        Resolution was not provided.
+                    </p>
+                {% endif %}
+            </div>
+
+        </section>
+
+        {% with article_images=article.images.all %}
+
+            {% if article_images %}
+
+                <section class="screenshots-section">
+
+                    <h2 class="screenshots-heading">
+                        <i class="fa-regular fa-images"></i>
+                        Screenshots
+
+                        <span class="screenshots-count">
+                            {{ article_images|length }}
+                        </span>
+                    </h2>
+
+                    {% for article_image in article_images %}
+
+                        <figure class="article-screenshot-card">
+
+                            <a
+                                href="{{ article_image.image.url }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="article-screenshot-link"
+                                title="Open full-size screenshot"
+                            >
+                                <img
+                                    src="{{ article_image.image.url }}"
+                                    alt="{{ article_image.caption|default:article.title }}"
+                                    class="article-image"
+                                    loading="lazy"
+                                >
+                            </a>
+
+                            {% if article_image.caption %}
+                                <figcaption class="image-caption">
+                                    <i class="fa-regular fa-image me-1"></i>
+                                    {{ article_image.caption }}
+                                </figcaption>
+                            {% endif %}
+
+                        </figure>
+
+                    {% endfor %}
+
+                </section>
+
+            {% endif %}
+
+        {% endwith %}
+
+        <footer class="article-source">
+
+            <i class="fa-solid fa-file-word"></i>
+
+            <span>Source:</span>
+
+            <span class="source-badge">
+                {{ article.guide_version.guide.title }}
+            </span>
+
+            <span class="source-badge">
+                Version {{ article.guide_version.version_number }}
+            </span>
+
+            {% if article.guide_version.original_file_name %}
+                <span class="source-badge">
+                    {{ article.guide_version.original_file_name }}
+                </span>
+            {% endif %}
+
+        </footer>
+
+    </article>
+
+</div>
+
+</body>
+</html>

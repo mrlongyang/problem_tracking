@@ -33,9 +33,19 @@
                 <i class="fa-solid fa-circle-plus"></i>
                 <span>ບັນທຶກບັນຫາໃໝ່</span>
             </a>
-            <a href="{% url 'import_guide' %}" class="sidebar-link">
-                <i class="fa-solid fa-file-word"></i>
-                <span>Import Word Guide</span>
+            <a href="{% url 'knowledge_guide_upload' %}"
+                class="sidebar-link">
+
+                 <i class="fa-solid fa-cloud-arrow-up"></i>
+
+                 <span>Upload Guide</span>
+            </a>
+            <a href="{% url 'knowledge_center' %}"
+                class="sidebar-link">
+
+                    <i class="fa-solid fa-book-open"></i>
+
+                    <span>Knowledge Center</span>
             </a>
         </nav>
 
@@ -160,7 +170,7 @@
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <div>
-                    <h1 class="page-title">Problem Management</h1>
+                    <h1 class="page-title">Problem Management Dashboard</h1>
                     <p class="page-subtitle">ຈັດການ ແລະ ຕິດຕາມບັນຫາໃນລະບົບ</p>
                 </div>
             </div>
@@ -199,9 +209,19 @@
                     <p>ກວດເບິ່ງ, ແກ້ໄຂ ແລະ ຕິດຕາມບັນຫາທັງໝົດ.</p>
                 </div>
                 <div class="welcome-actions">
-                    <a href="{% url 'import_guide' %}" class="btn btn-outline-primary">
-                        <i class="fa-solid fa-file-import me-2"></i>Import Word
-                    </a>
+                <a href="{% url 'knowledge_center' %}"
+                    class="sidebar-link">
+
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Knowledge Center</span>
+                </a>
+
+                <a href="{% url 'knowledge_guide_upload' %}"
+                class="sidebar-link">
+
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload Guide</span>
+                </a>
                     <a href="{% url 'problem_create' %}" class="btn btn-primary">
                         <i class="fa-solid fa-plus me-2"></i>ບັນທຶກບັນຫາ
                     </a>
