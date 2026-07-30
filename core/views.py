@@ -200,21 +200,50 @@ def register_view(request):
 
 #Authentication
 def login_view(request):
-    if request.method == 'POST':
-        user_id = request.POST.get('user_id')
-        password = request.POST.get('password')
-        user = authenticate(request, user_id=user_id, password=password)
-        
+    if request.user.is_authenticated:
+        return redirect("problem_list")
+
+    if request.method == "POST":
+        user_id = request.POST.get("user_id", "").strip()
+        password = request.POST.get("password", "")
+        remember_me = request.POST.get("remember_me") == "on"
+
+        user = authenticate(
+            request,
+            username=user_id,
+            password=password,
+        )
+
         if user is not None:
             login(request, user)
-            if user.role and user.role.name.lower() == 'admin':
-                return redirect('dashboard')
-            else:
-                return redirect('problem_list')
-        else:
-            messages.error(request, 'ໄອດີ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!.')
 
-    return render(request, 'core/Signup/login.html')
+            if remember_me:
+                # Keep session for 14 days.
+                request.session.set_expiry(60 * 60 * 24 * 14)
+            else:
+                # Expire when the browser closes.
+                request.session.set_expiry(0)
+
+            request.session.modified = True
+
+            return redirect("problem_list")
+
+        messages.error(
+            request,
+            "ລະຫັດພະນັກງານ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ.",
+        )
+
+    response = render(
+        request,
+        "core/Signup/login.html",
+    )
+
+    # Prevent the browser from reusing an old CSRF form.
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+
+    return response
 
 
 def logout_view(request):
