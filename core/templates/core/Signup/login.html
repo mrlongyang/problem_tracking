@@ -1,57 +1,301 @@
 {% extends "core/Main/base.html" %}
 {% load static %}
-{% block content %}
+
+{% block extra_css %}
+
 <link rel="stylesheet" href="{% static 'core/css/login.css' %}">
 <link rel="stylesheet" href="{% static 'core/css/fonts.css' %}">
 
+{% endblock %}
 
-<div class="login-container">
-    <div class="login-box">
-        <h3 class="login-title">🔐ເຂົ້າສູ່ລະບົບ</h3>
-        <p class="login-subtitle">ຍິນດີຕ້ອນຮັບ! ກະລຸນາເຂົ້າສູ່ລະບົບດ້ວຍບັນຊີຂອງທ່ານ.</p>
+{% block full_page_content %}
+<div class="auth-page">
 
-        <form method="post">
-            {% csrf_token %}
+    <!-- Left company section -->
+    <section class="auth-brand-panel">
+
+        <div class="brand-overlay"></div>
+
+        <div class="brand-content">
+            <div class="brand-logo-wrapper">
+                <img
+                    src="{% static 'core/images/logoo.png' %}"
+                    alt="APB Logo"
+                    class="brand-logo"
+                >
+            </div>
+
+            <div class="brand-name">
+                <span class="brand-name-lao">
+                    ທະນາຄານ ສົ່ງເສີມກະສິກຳ ຈຳກັດ
+                </span>
+
+                <span class="brand-name-en">
+                    AGRICULTURAL PROMOTION BANK CO., LTD
+                </span>
+            </div>
+
+            <div class="brand-description">
+                <span class="brand-badge">
+                    Internal System
+                </span>
+
+                <h1>
+                    Problem Tracking<br>
+                    Management System
+                </h1>
+
+                <p>
+                    ລະບົບບັນທຶກ, ຕິດຕາມ ແລະ
+                    ຈັດການບັນຫາຂອງລະບົບ Core Banking
+                </p>
+            </div>
+
+            <div class="brand-features">
+                <div class="brand-feature">
+                    <span class="feature-icon">✓</span>
+                    <span>Centralized issue management</span>
+                </div>
+
+                <div class="brand-feature">
+                    <span class="feature-icon">✓</span>
+                    <span>Problem and solution knowledge base</span>
+                </div>
+
+                <div class="brand-feature">
+                    <span class="feature-icon">✓</span>
+                    <span>Secure access for authorized staff</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="brand-footer">
+            © {% now "Y" %} Agricultural Promotion Bank Co., Ltd
+        </div>
+    </section>
+
+    <!-- Right login section -->
+    <section class="auth-form-panel">
+
+        <div class="mobile-brand">
+            <img
+                src="{% static 'core/images/logoo.png' %}"
+                alt="APB Logo"
+            >
+
+            <div>
+                <strong>APB</strong>
+                <small>Problem Tracking System</small>
+            </div>
+        </div>
+
+        <div class="login-card">
+
+            <div class="login-card-header">
+                <div class="login-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                            d="M17 8V7a5 5 0 0 0-10 0v1H5.8A1.8 1.8 0 0 0 4 9.8v9.4A1.8 1.8 0 0 0 5.8 21h12.4a1.8 1.8 0 0 0 1.8-1.8V9.8A1.8 1.8 0 0 0 18.2 8H17Zm-8 0V7a3 3 0 0 1 6 0v1H9Zm4 7.73V18h-2v-2.27a2 2 0 1 1 2 0Z"
+                        />
+                    </svg>
+                </div>
+
+                <div>
+                    <span class="login-eyebrow">WELCOME BACK</span>
+                    <h2>ເຂົ້າສູ່ລະບົບ</h2>
+                    <p>
+                        ກະລຸນາໃຊ້ບັນຊີພະນັກງານຂອງທ່ານ
+                    </p>
+                </div>
+            </div>
 
             {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-danger">{{ message }}</div>
-            {% endfor %}
+                <div class="login-messages">
+                    {% for message in messages %}
+                        <div class="login-alert">
+                            <span class="alert-icon">!</span>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
 
-            <div class="form-group">
-                <label for="user_id">ລະຫັດພະນັກງານ:</label>
-                <div class="input-wrapper">
-                    <input type="text" name="user_id" id="user_id" placeholder="ໃສ່ ID ຜູ້ໃຊ້ຂອງທ່ານ" required>
+            <form method="post" class="login-form" novalidate>
+                {% csrf_token %}
+
+                <div class="form-field">
+                    <label for="user_id">
+                        ລະຫັດພະນັກງານ
+                    </label>
+
+                    <div class="modern-input-wrapper">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5Z"
+                                />
+                            </svg>
+                        </span>
+
+                        <input
+                            type="text"
+                            name="user_id"
+                            id="user_id"
+                            placeholder="ໃສ່ ID ພະນັກງານ"
+                            autocomplete="username"
+                            value="{{ request.POST.user_id|default:'' }}"
+                            required
+                            autofocus
+                        >
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <div class="field-label-row">
+                        <label for="passwordInput">
+                            ລະຫັດຜ່ານ
+                        </label>
+
+                        <span class="secure-label">
+                            Secure login
+                        </span>
+                    </div>
+
+                    <div class="modern-input-wrapper">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M17 8V7a5 5 0 0 0-10 0v1H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1ZM9 7a3 3 0 0 1 6 0v1H9V7Zm4 9.73V19h-2v-2.27a2 2 0 1 1 2 0Z"
+                                />
+                            </svg>
+                        </span>
+
+                        <input
+                            type="password"
+                            name="password"
+                            id="passwordInput"
+                            placeholder="ປ້ອນລະຫັດຜ່ານ"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="toggle-password"
+                            id="togglePasswordButton"
+                            aria-label="Show password"
+                            aria-pressed="false"
+                        >
+                            <svg
+                                class="eye-open"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M12 5c-5.5 0-9.5 4.5-10.7 6.1a1.5 1.5 0 0 0 0 1.8C2.5 14.5 6.5 19 12 19s9.5-4.5 10.7-6.1a1.5 1.5 0 0 0 0-1.8C21.5 9.5 17.5 5 12 5Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"
+                                />
+                            </svg>
+
+                            <svg
+                                class="eye-closed"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="m3.3 2 18.7 18.7-1.3 1.3-3.1-3.1A11.8 11.8 0 0 1 12 20C6.5 20 2.5 15.5 1.3 13.9a1.5 1.5 0 0 1 0-1.8 21.4 21.4 0 0 1 4-4.1L2 4.7 3.3 2Zm4.2 7.5A5.7 5.7 0 0 0 6.1 12c1 1.2 3.1 3 5.9 3 .8 0 1.6-.2 2.3-.5l-1.5-1.5a2 2 0 0 1-2.8-2.8L7.5 7.7v1.8ZM12 5c5.5 0 9.5 4.5 10.7 6.1a1.5 1.5 0 0 1 0 1.8 20 20 0 0 1-2.8 3.1l-2.1-2.1c.9-.7 1.6-1.4 2.1-1.9-1-1.2-3.1-3-5.9-3-.5 0-1 .1-1.5.2L9.8 6.5A11 11 0 0 1 12 5Z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="login-options">
+                    <label class="remember-checkbox">
+                        <input type="checkbox" name="remember_me">
+                        <span class="custom-checkbox"></span>
+                        <span>ຈື່ລະຫັດພະນັກງານ</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="login-submit-button">
+                    <span>ເຂົ້າສູ່ລະບົບ</span>
+
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                            d="m13 5 7 7-7 7-1.4-1.4 4.6-4.6H4v-2h12.2l-4.6-4.6L13 5Z"
+                        />
+                    </svg>
+                </button>
+            </form>
+
+            <div class="login-divider">
+                <span></span>
+                <small>Authorized personnel only</small>
+                <span></span>
+            </div>
+
+            <div class="login-help">
+                <div class="help-icon">?</div>
+
+                <div>
+                    <strong>ຕ້ອງການຄວາມຊ່ວຍເຫຼືອ?</strong>
+                    <p>
+                        ກະລຸນາຕິດຕໍ່ພະແນກ IT
+                        ຫາກທ່ານບໍ່ສາມາດເຂົ້າລະບົບໄດ້.
+                    </p>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="password">ລະຫັດຜ່ານ:</label>
-                <div class="input-wrapper">
-                    <input type="password" name="password" id="passwordInput" placeholder="ປ້ອນລະຫັດຜ່ານ" required>
-                    <span class="toggle-password" onclick="togglePassword()">👁</span>
-                </div>
-            </div>
+        </div>
 
-            <button type="submit" class="btn-login">ເຂົ້າສູ່ລະບົບ</button>
-        </form>
+        <div class="auth-security-note">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                    d="M12 2 4 5v6c0 5.1 3.4 9.9 8 11 4.6-1.1 8-5.9 8-11V5l-8-3Zm3.7 7.7-4.4 4.4-2.5-2.5 1.4-1.4 1.1 1.1 3-3 1.4 1.4Z"
+                />
+            </svg>
 
-        <p class="register-link">ບໍ່ມີບັນຊີບໍ? <a href="{% url 'register' %}">ລົງທະບຽນ</a></p>
-    </div>
+            <span>
+                Your credentials are securely protected.
+            </span>
+        </div>
+
+    </section>
 </div>
 
 <script>
-    function togglePassword() {
-        const input = document.getElementById("passwordInput");
-        const toggle = document.querySelector(".toggle-password");
-        if (input.type === "password") {
-            input.type = "text";
-            toggle.textContent = "🙈";
-        } else {
-            input.type = "password";
-            toggle.textContent = "👁";
-        }
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+        const passwordInput =
+            document.getElementById("passwordInput");
+
+        const toggleButton =
+            document.getElementById("togglePasswordButton");
+
+        toggleButton.addEventListener("click", function () {
+            const passwordIsVisible =
+                passwordInput.type === "text";
+
+            passwordInput.type =
+                passwordIsVisible ? "password" : "text";
+
+            toggleButton.classList.toggle(
+                "is-visible",
+                !passwordIsVisible
+            );
+
+            toggleButton.setAttribute(
+                "aria-pressed",
+                String(!passwordIsVisible)
+            );
+
+            toggleButton.setAttribute(
+                "aria-label",
+                passwordIsVisible
+                    ? "Show password"
+                    : "Hide password"
+            );
+        });
+    });
 </script>
+
 {% endblock %}
