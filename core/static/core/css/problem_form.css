@@ -33,3 +33,225 @@ form label {
     background-color: #ffffff33;
     color: #fff;
 }
+
+body {
+    background: #f5f7fb;
+}
+
+.problem-form-card {
+    max-width: 1050px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #e3e8f0;
+    border-radius: 18px;
+    box-shadow: 0 12px 35px rgba(29, 42, 71, 0.1);
+    overflow: hidden;
+}
+
+.problem-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 26px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #3568f0, #537ff5);
+}
+
+.problem-form-header h4 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.problem-form-header p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+}
+
+.problem-form-body {
+    padding: 26px;
+}
+
+.form-section {
+    padding: 20px;
+    margin-bottom: 20px;
+    background: #fbfcfe;
+    border: 1px solid #e7ebf2;
+    border-radius: 14px;
+}
+
+.form-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.form-section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid #e6eaf1;
+}
+
+.section-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    background: #edf3ff;
+    border-radius: 11px;
+    font-size: 17px;
+}
+
+.form-section-title h5 {
+    margin: 0;
+    color: #1f2a3d;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.form-section-title small {
+    display: block;
+    margin-top: 2px;
+    color: #7c8799;
+    font-size: 10px;
+}
+
+.form-label {
+    margin-bottom: 7px;
+    color: #344054;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.required-mark {
+    color: #dc3545;
+}
+
+.form-control,
+.form-select {
+    min-height: 44px;
+    padding: 10px 12px;
+    color: #344054;
+    background-color: #ffffff;
+    border: 1px solid #d5dce8;
+    border-radius: 10px;
+    font-size: 12px;
+    transition: 0.2s ease;
+}
+
+textarea.form-control {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #3568f0;
+    box-shadow: 0 0 0 3px rgba(53, 104, 240, 0.12);
+}
+
+.upload-area {
+    padding: 18px;
+    background: #ffffff;
+    border: 1px dashed #bfc9dc;
+    border-radius: 12px;
+}
+
+.upload-help {
+    margin-top: 7px;
+    color: #7b8495;
+    font-size: 10px;
+}
+
+.file-preview-list {
+    display: grid;
+    gap: 8px;
+}
+
+.file-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 12px;
+    background: #f5f8ff;
+    border: 1px solid #dce6ff;
+    border-radius: 10px;
+}
+
+.file-preview-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    background: #ffffff;
+    border-radius: 8px;
+}
+
+.file-preview-info {
+    min-width: 0;
+}
+
+.file-preview-info strong {
+    display: block;
+    max-width: 700px;
+    overflow: hidden;
+    color: #28344a;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-preview-info small {
+    display: block;
+    margin-top: 2px;
+    color: #7c8799;
+    font-size: 9px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+    margin-top: 22px;
+    border-top: 1px solid #e5e9f0;
+}
+
+.form-actions .btn {
+    min-width: 140px;
+    min-height: 43px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+@media (max-width: 767.98px) {
+    .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .problem-form-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .problem-form-body {
+        padding: 16px;
+    }
+
+    .form-section {
+        padding: 15px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}

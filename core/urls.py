@@ -53,10 +53,10 @@ urlpatterns = [
     
     path('ajax/search-problems/', views.ajax_search_problems, name='ajax_search_problems'),
     
-    
-    
+       
     # export pdf
     path('problems/export/pdf/', views.export_problems_pdf, name='export_problems_pdf'),
-
-
+    
+    path("problems/import-guide/", views.import_guide, name="import_guide",),
+    
 ]

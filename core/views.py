@@ -1,5 +1,19 @@
+import mimetypes
+import re
+import uuid
+
+from io import BytesIO
+
+from docx.document import Document as DocumentClass
+from docx.oxml.ns import qn
+from docx.table import Table
+from docx.text.paragraph import Paragraph
+
+from docx import Document
+from django.db import transaction
+from django.core.files.base import ContentFile
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Problem, ProblemAttachment, Permission, Solution, SolutionAttachment, User, Module
+from .models import Module, Problem, ProblemAttachment, Permission, Solution, SolutionAttachment, User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -15,7 +29,6 @@ from rest_framework.decorators import api_view
 from .serializers import UserSerializer
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponseForbidden
-import uuid
 from django.utils import timezone
 from django.db.models import Count
 from django.utils.safestring import mark_safe
@@ -37,6 +50,9 @@ from django.http import HttpResponse
 from io import BytesIO 
 from django.utils.dateparse import parse_date
 from datetime import datetime
+from .forms import ImportGuideForm
+from django.db.models import Count, Q
+from django.shortcuts import redirect, render
 
 
 
@@ -204,95 +220,146 @@ def logout_confirm_view(request):
 # Function Problem List
 @login_required
 def problem_list(request):
-    status = request.GET.get('status')
-    search_query = request.GET.get('search', '')
-    selected_priority = request.GET.get('priority', '')
-    selected_module = request.GET.get('module')
-    start_date_str = request.GET.get('start_date')
-    end_date_str = request.GET.get('end_date')
+    # Get filter values
+    selected_status = request.GET.get("status", "").strip()
+    search_query = request.GET.get("search", "").strip()
+    selected_priority = request.GET.get("priority", "").strip()
+    selected_module = request.GET.get("module", "").strip()
+    start_date_str = request.GET.get("start_date", "").strip()
+    end_date_str = request.GET.get("end_date", "").strip()
 
-    # ✅ Start with all problems
-    problems = Problem.objects.all().order_by('-created_at')
+    # Start with all problems
+    problems = (
+        Problem.objects
+        .select_related("module", "department")
+        .all()
+        .order_by("-created_at")
+    )
 
-    # 📅 Filter by date range
-    if start_date_str and end_date_str:
-        try:
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
-            problems = problems.filter(created_at__date__range=(start_date, end_date))
-        except ValueError:
-            messages.error(request, "Invalid date format. Use YYYY-MM-DD.")
-            return redirect('problem_list')
-
-    # 📦 Filter by module
-    if selected_module:
-        problems = problems.filter(module__module_name=selected_module)
-
-    # ✅ Filter by status
-    if status == 'open':
-        problems = problems.filter(status__icontains='open')
-    elif status == 'resolved':
-        problems = problems.filter(status__icontains='resolved')
-
-    # ✅ Filter by search
+    # Search filter
     if search_query:
         problems = problems.filter(
-            Q(problem_id__icontains=search_query) |
-            Q(title__icontains=search_query)
+            Q(problem_id__icontains=search_query)
+            | Q(title__icontains=search_query)
+            | Q(description__icontains=search_query)
         )
 
-    # ✅ Filter by priority
+    # Status filter
+    if selected_status:
+        problems = problems.filter(
+            status__iexact=selected_status
+        )
+
+    # Priority filter
     if selected_priority:
-        problems = problems.filter(priority=selected_priority)
+        problems = problems.filter(
+            priority__iexact=selected_priority
+        )
 
-    # 📊 Top modules for dropdown
-    module_report = Problem.objects.values('module__module_name') \
-        .annotate(count=Count('problem_id')) \
-        .order_by('-count')[:5]
+    # Module filter
+    if selected_module:
+        problems = problems.filter(
+            module__module_name__iexact=selected_module
+        )
 
-    # ✅ Handle AJAX auto search
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        filtered = problems.values('problem_id', 'title', 'description')
-        return JsonResponse({"results": list(filtered)})
-    
-    
-    if start_date_str and end_date_str and start_date_str != 'None' and end_date_str != 'None':
+    # Start date filter
+    if start_date_str:
         try:
-            if start_date_str and end_date_str and start_date_str != 'None' and end_date_str != 'None':
-                start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
-            problems = problems.filter(created_at__date__range=(start_date, end_date))
+            start_date = datetime.strptime(
+                start_date_str,
+                "%Y-%m-%d",
+            ).date()
+
+            problems = problems.filter(
+                created_at__date__gte=start_date
+            )
         except ValueError:
-            messages.error(request, "Invalid date format.")
-            return redirect('problem_list')
-    
+            messages.error(
+                request,
+                "Invalid start date format.",
+            )
+            return redirect("problem_list")
 
-    # 🔢 Pagination
-    paginator = Paginator(problems, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    # End date filter
+    if end_date_str:
+        try:
+            end_date = datetime.strptime(
+                end_date_str,
+                "%Y-%m-%d",
+            ).date()
 
-    # Stats
+            problems = problems.filter(
+                created_at__date__lte=end_date
+            )
+        except ValueError:
+            messages.error(
+                request,
+                "Invalid end date format.",
+            )
+            return redirect("problem_list")
+
+    # AJAX live search
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        filtered = problems.values(
+            "problem_id",
+            "title",
+            "description",
+            "module__module_name",
+            "status",
+            "department__department_name",
+            "updated_at",
+        )
+
+        return JsonResponse({
+            "results": list(filtered),
+        })
+
+    # Module report
+    module_report = []
+
+    for module in Module.objects.all().order_by("module_name"):
+        module_report.append({
+            "module_name": module.module_name,
+            "count": Problem.objects.filter(module=module).count()
+        })
+
+    # Counts before pagination
     total_issues = problems.count()
-    resolved_count = Problem.objects.filter(status__icontains='resolved').count()
-    open_count = Problem.objects.filter(status__icontains='open').count()
 
-    return render(request, 'core/Problems/problem_list_standalone.html', {
-        'problems': problems,
-        'page_obj': page_obj,
-        'selected_status': status,
-        'selected_priority': selected_priority,
-        'selected_module': selected_module,
-        'search_query': search_query,
-        'start_date': start_date_str,
-        'end_date': end_date_str,
-        'module_report': module_report,
-        'total_issues': total_issues,
-        'resolved_count': resolved_count,
-        'open_count': open_count,
-    })
-    
-    
+    open_count = Problem.objects.filter(
+        status__iexact="open"
+    ).count()
+
+    resolved_count = Problem.objects.filter(
+        status__iexact="resolved"
+    ).count()
+
+    # Pagination
+    paginator = Paginator(problems, 10)
+    page_obj = paginator.get_page(
+        request.GET.get("page")
+    )
+
+    context = {
+        "problems": problems,
+        "page_obj": page_obj,
+        "selected_status": selected_status,
+        "selected_priority": selected_priority,
+        "selected_module": selected_module,
+        "search_query": search_query,
+        "start_date": start_date_str,
+        "end_date": end_date_str,
+        "module_report": module_report,
+        "total_issues": total_issues,
+        "resolved_count": resolved_count,
+        "open_count": open_count,
+    }
+
+    return render(
+        request,
+        "core/Problems/problem_list_standalone.html",
+        context,
+    )
     
 # Edit problem record
 @login_required
@@ -691,3 +758,307 @@ def ajax_search_problems(request):
 
     html = render_to_string('core/Problems/_problem_table_body.html', {'problems': problems})
     return JsonResponse({'html': html})
+
+
+def iterate_word_blocks(parent):
+    """Yield paragraphs and tables in the order they appear in the Word file."""
+    if isinstance(parent, DocumentClass):
+        parent_element = parent.element.body
+    else:
+        parent_element = parent._tc
+
+    for child in parent_element.iterchildren():
+        if child.tag == qn("w:p"):
+            yield Paragraph(child, parent)
+        elif child.tag == qn("w:tbl"):
+            yield Table(child, parent)
+
+
+def extract_images_from_paragraph(paragraph):
+    """Extract inline/floating images attached to a Word paragraph."""
+    extracted_images = []
+    seen_relationship_ids = set()
+
+    for blip in paragraph._element.xpath(".//a:blip"):
+        relationship_id = blip.get(qn("r:embed"))
+
+        if not relationship_id or relationship_id in seen_relationship_ids:
+            continue
+
+        seen_relationship_ids.add(relationship_id)
+        image_part = paragraph.part.related_parts.get(relationship_id)
+
+        if image_part is None:
+            continue
+
+        content_type = getattr(image_part, "content_type", "image/png")
+        extension = mimetypes.guess_extension(content_type) or ".png"
+
+        extracted_images.append(
+            {
+                "data": image_part.blob,
+                "filename": f"{uuid.uuid4()}{extension}",
+                "content_type": content_type,
+            }
+        )
+
+    return extracted_images
+
+
+def build_module_id(module_name):
+    """Create a short module primary key from a Word module heading."""
+    module_id = re.sub(r"[^A-Za-z0-9]+", "_", module_name.strip()).strip("_")
+    return (module_id or "IMPORTED")[:20].upper()
+
+
+@login_required
+def import_guide(request):
+    if request.method == "POST":
+        form = ImportGuideForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            uploaded_file = form.cleaned_data["file"]
+            default_priority = form.cleaned_data["default_priority"]
+            default_department = form.cleaned_data["default_department"]
+            overwrite_existing = form.cleaned_data["overwrite_existing"]
+
+            try:
+                document = Document(uploaded_file)
+
+                # Examples:
+                # 1 BP1231 : [ERROR MESSAGE]
+                # 2 DD1007: [ANOTHER ERROR]
+                error_pattern = re.compile(
+                    r"^\s*\d+\s+([A-Za-z]{1,10}\d+)\s*[:：]\s*\[(.+?)\]\.?\s*$"
+                )
+
+                records = []
+                current_module_name = ""
+                current_record = None
+                current_section = None
+
+                for block in iterate_word_blocks(document):
+                    if not isinstance(block, Paragraph):
+                        continue
+
+                    text = block.text.strip()
+
+                    # A screenshot can be in a paragraph with no text.
+                    paragraph_images = extract_images_from_paragraph(block)
+
+                    if text.lower().startswith("function module"):
+                        if current_record:
+                            records.append(current_record)
+                            current_record = None
+                            current_section = None
+
+                        module_match = re.search(r"[（(]\s*(.*?)\s*[）)]", text)
+                        if module_match:
+                            current_module_name = module_match.group(1).strip()
+                        continue
+
+                    error_match = error_pattern.match(text)
+
+                    if error_match:
+                        if current_record:
+                            records.append(current_record)
+
+                        error_code = error_match.group(1).strip()
+                        title = error_match.group(2).strip()
+
+                        current_record = {
+                            "problem_id": error_code,
+                            "error_code": error_code,
+                            "title": title,
+                            "module_name": current_module_name,
+                            "root_cause_lines": [],
+                            "resolution_lines": [],
+                            "images": [],
+                        }
+                        current_section = None
+
+                        if paragraph_images:
+                            current_record["images"].extend(paragraph_images)
+                        continue
+
+                    if current_record is None:
+                        continue
+
+                    if paragraph_images:
+                        current_record["images"].extend(paragraph_images)
+
+                    normalized_text = text.lower().rstrip(":：").strip()
+
+                    if normalized_text == "root cause":
+                        current_section = "root_cause"
+                        continue
+
+                    if normalized_text == "resolution":
+                        current_section = "resolution"
+                        continue
+
+                    if not text:
+                        continue
+
+                    if current_section == "root_cause":
+                        current_record["root_cause_lines"].append(text)
+                    elif current_section == "resolution":
+                        current_record["resolution_lines"].append(text)
+
+                if current_record:
+                    records.append(current_record)
+
+                if not records:
+                    messages.warning(
+                        request,
+                        "No problem records were found in this Word document.",
+                    )
+                    return render(
+                        request,
+                        "core/Problems/import_guide.html",
+                        {"form": form},
+                    )
+
+                imported_count = 0
+                updated_count = 0
+                skipped_count = 0
+                attachment_count = 0
+
+                with transaction.atomic():
+                    for record in records:
+                        module = None
+
+                        if record["module_name"]:
+                            module = Module.objects.filter(
+                                module_name__iexact=record["module_name"]
+                            ).first()
+
+                            if module is None:
+                                module, _ = Module.objects.get_or_create(
+                                    module_id=build_module_id(record["module_name"]),
+                                    defaults={
+                                        "module_name": record["module_name"],
+                                    },
+                                )
+
+                        root_cause = "\n".join(
+                            record["root_cause_lines"]
+                        ).strip()
+
+                        resolution = "\n".join(
+                            record["resolution_lines"]
+                        ).strip()
+
+                        existing_problem = Problem.objects.filter(
+                            problem_id=record["problem_id"]
+                        ).first()
+
+                        problem_defaults = {
+                            "error_code": record["error_code"],
+                            "title": record["title"],
+                            "description": root_cause or "Root cause not provided.",
+                            "priority": default_priority,
+                            "status": "Open",
+                            "department": default_department,
+                            "module": module,
+                            "created_by": request.user,
+                            "source_type": "word_import",
+                            "source_file_name": uploaded_file.name,
+                        }
+
+                        if existing_problem:
+                            if not overwrite_existing:
+                                skipped_count += 1
+                                continue
+
+                            for field_name, value in problem_defaults.items():
+                                setattr(existing_problem, field_name, value)
+
+                            existing_problem.save()
+                            problem = existing_problem
+                            updated_count += 1
+
+                            # Remove previous attachments before replacing them.
+                            old_attachments = ProblemAttachment.objects.filter(
+                                problem=problem
+                            )
+                            for old_attachment in old_attachments:
+                                if old_attachment.file:
+                                    old_attachment.file.delete(save=False)
+                                old_attachment.delete()
+                        else:
+                            problem = Problem.objects.create(
+                                problem_id=record["problem_id"],
+                                **problem_defaults,
+                            )
+                            imported_count += 1
+
+                        for image in record["images"]:
+                            attachment = ProblemAttachment(
+                                problem=problem,
+                                uploaded_by=request.user,
+                                file_type=image["content_type"],
+                            )
+                            attachment.file.save(
+                                image["filename"],
+                                ContentFile(image["data"]),
+                                save=True,
+                            )
+                            attachment_count += 1
+
+                        if resolution:
+                            imported_solution = Solution.objects.filter(
+                                problem=problem,
+                                solution_type="imported",
+                            ).first()
+
+                            if imported_solution:
+                                imported_solution.author = request.user
+                                imported_solution.content = resolution
+                                imported_solution.is_final_solution = True
+
+                                # Only set this when the model contains the field.
+                                if hasattr(imported_solution, "source_file_name"):
+                                    imported_solution.source_file_name = uploaded_file.name
+
+                                imported_solution.save()
+                            else:
+                                solution_data = {
+                                    "problem": problem,
+                                    "author": request.user,
+                                    "content": resolution,
+                                    "is_final_solution": True,
+                                    "solution_type": "imported",
+                                }
+
+                                if any(
+                                    field.name == "source_file_name"
+                                    for field in Solution._meta.get_fields()
+                                ):
+                                    solution_data["source_file_name"] = uploaded_file.name
+
+                                Solution.objects.create(**solution_data)
+
+                messages.success(
+                    request,
+                    (
+                        "Import completed. "
+                        f"Created: {imported_count}, "
+                        f"Updated: {updated_count}, "
+                        f"Skipped: {skipped_count}, "
+                        f"Images: {attachment_count}."
+                    ),
+                )
+                return redirect("problem_list")
+
+            except Exception as error:
+                messages.error(request, f"Import failed: {error}")
+
+    else:
+        form = ImportGuideForm()
+
+    return render(
+        request,
+        "core/Problems/import_guide.html",
+        {"form": form},
+    )

@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser,BaseUserManager, Permiss
 from django.conf import settings
 from uuid import uuid4
 import uuid
+from django.db.models.aggregates import Count
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, user_id, email, name, password=None, **extra_fields):
@@ -130,67 +131,277 @@ class Module(models.Model):
         return self.module_name
 
 class Problem(models.Model):
-    problem_id = models.CharField(primary_key=True, max_length=20)
-    PRIORITY = [('Low', 'Low'), ('Medium', 'Medium'), ('High', 'High'), ('Critical', 'Critical')]
+    PRIORITY = [
+        ("Low", "Low"),
+        ("Medium", "Medium"),
+        ("High", "High"),
+        ("Critical", "Critical"),
+    ]
+
     STATUS = [
-        ('Open', 'Open'), 
-        ('Solved', 'Solved'), 
-        ('Closed', 'Closed'), 
-        ('Resolved ✅', 'Resolved ✅')
-        ]
-    status = models.CharField(max_length=15, choices=STATUS, default='Open')
+        ("Open", "Open"),
+        ("Solved", "Solved"),
+        ("Closed", "Closed"),
+        ("Resolved", "Resolved"),
+    ]
+
+    SOURCE_TYPE = [
+        ("manual", "Manual Entry"),
+        ("word_import", "Word Import"),
+        ("excel_import", "Excel Import"),
+    ]
+
+    problem_id = models.CharField(
+        primary_key=True,
+        max_length=50,
+    )
+
+    # Imported troubleshooting-guide information
+    transaction_code = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="Example: 0015100",
+    )
+
+    error_code = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="Example: AI8808",
+    )
+
+    function_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Example: GL A/C Definition Maintenance",
+    )
+
+    source_type = models.CharField(
+        max_length=20,
+        choices=SOURCE_TYPE,
+        default="manual",
+    )
+
+    source_file_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+    status = models.CharField(
+        max_length=15,
+        choices=STATUS,
+        default="Open",
+    )
+
     title = models.CharField(max_length=255)
+
     description = models.TextField()
-    module = models.ForeignKey(Module, on_delete=models.SET_NULL, null=True, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
-    user_group = models.ForeignKey(UserGroup, on_delete=models.SET_NULL, null=True, blank=True)  
-    priority = models.CharField(max_length=10, choices=PRIORITY)
+    
+    module = models.ForeignKey(
+        Module,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="problems",
+)
+    
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_problems",
+    )
+
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="problems",
+    )
+
+    user_group = models.ForeignKey(
+        UserGroup,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="problems",
+    )
+
+    priority = models.CharField(
+        max_length=10,
+        choices=PRIORITY,
+        default="Medium",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    last_updated = models.DateTimeField(auto_now=True)
+
     class Meta:
-        verbose_name = "Problem"              
-        verbose_name_plural = "Problem"
+        verbose_name = "Problem"
+        verbose_name_plural = "Problems"
+        ordering = ["-updated_at"]
+        indexes = [
+            models.Index(fields=["error_code"]),
+            models.Index(fields=["transaction_code"]),
+            models.Index(fields=["status"]),
+        ]
 
     def __str__(self):
-        return self.title
+        if self.error_code:
+            return f"{self.error_code} - {self.title}"
+        return f"{self.problem_id} - {self.title}"
     
 
 class ProblemAttachment(models.Model):
-    problemattachment_id = models.CharField(primary_key=True, max_length=50, default=uuid.uuid4, editable=False)
-    problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
-    file = models.FileField(upload_to='attachments/')
-    file_type = models.CharField(max_length=50)
-    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    problemattachment_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+
+    file = models.FileField(
+        upload_to="attachments/%Y/%m/",
+    )
+
+    file_type = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Attachment for {self.problem.title}"
+        return f"Attachment for {self.problem.problem_id}"
 
 class Solution(models.Model):
-    solution_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    problem = models.ForeignKey('Problem', on_delete=models.CASCADE, related_name='solutions')
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    SOLUTION_TYPES = [
+        ("text", "Text Explanation"),
+        ("code", "Code Fix"),
+        ("config", "Configuration Change"),
+        ("workaround", "Workaround"),
+        ("documentation", "Documentation Link"),
+        ("imported", "Imported Resolution"),
+    ]
+
+    solution_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="solutions",
+    )
+
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="solutions",
+    )
+
     content = models.TextField()
+
     is_final_solution = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+
     solution_type = models.CharField(
         max_length=30,
-        choices=[
-            ('text', 'Text Explanation'),
-            ('code', 'Code Fix'),
-            ('config', 'Configuration Change'),
-            ('workaround', 'Workaround'),
-            ('documentation', 'Documentation Link'),
-        ],
-        default='text'
+        choices=SOLUTION_TYPES,
+        default="text",
     )
+
+    source_file_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
-        verbose_name = "Solution"              
-        verbose_name_plural = "Solution"
+        verbose_name = "Solution"
+        verbose_name_plural = "Solutions"
+        ordering = ["-created_at"]
+
     def __str__(self):
-        return f"{self.solution_type} solution for problem #{self.solution_id}"
+        return f"{self.solution_type} solution for {self.problem.problem_id}"
+    
+class TroubleshootingImport(models.Model):
+    STATUS_CHOICES = [
+        ("processing", "Processing"),
+        ("completed", "Completed"),
+        ("partial", "Completed With Errors"),
+        ("failed", "Failed"),
+    ]
+
+    import_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
+    file = models.FileField(
+        upload_to="troubleshooting_imports/%Y/%m/",
+    )
+
+    original_file_name = models.CharField(max_length=255)
+
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="troubleshooting_imports",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="processing",
+    )
+
+    total_records = models.PositiveIntegerField(default=0)
+    imported_records = models.PositiveIntegerField(default=0)
+    skipped_records = models.PositiveIntegerField(default=0)
+    failed_records = models.PositiveIntegerField(default=0)
+
+    error_log = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Troubleshooting Import"
+        verbose_name_plural = "Troubleshooting Imports"
+        ordering = ["-uploaded_at"]
+
+    def __str__(self):
+        return f"{self.original_file_name} - {self.status}"
 
 class SolutionAttachment(models.Model):
     solution_attachment_id = models.CharField(

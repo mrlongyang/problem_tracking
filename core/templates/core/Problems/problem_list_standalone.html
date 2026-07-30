@@ -1,421 +1,426 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="lo">
-
 <head>
-     <meta charset="UTF-8">
-     <title>Problem Lists</title>
-     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Problem Management</title>
 
-     <!-- Bootstrap & Fonts -->
-     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-     <link rel="stylesheet" href="{% static 'core/css/fonts.css' %}">
-     <link rel="icon" type="image/png" href="{% static 'core/images/logoo.png' %}">
-     <link rel="stylesheet" href="{% static 'core/css/problem_list_standalone.css' %}">
-
-     <style>
-          .sidebar {
-               border-right: 1px solid #ccc;
-               height: 150vh;
-               position: sticky;
-               top: 70px;
-               height: fit-content;
-          }
-
-          .dropdown-menu .dropdown-item:hover {
-               background-color: #f8f9fa !important;
-               color: black !important;
-          }
-
-          .dropdown-menu .dropdown-item:active {
-               background-color: #f8f9fa !important;
-               color: black !important;
-          }
-     </style>
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/fonts.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'core/images/logoo.png' %}">
+    <link rel="stylesheet" href="{% static 'core/css/problem_list_standalone.css' %}">
 </head>
-
 <body>
-     <div class="container-fluid">
+<div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar" id="appSidebar">
+        <div class="sidebar-brand">
+            <img src="{% static 'core/images/apb.jpg' %}" alt="APB Logo" class="brand-logo">
+            <div>
+                <div class="brand-title">APB Core</div>
+                <div class="brand-subtitle">Problem Tracking</div>
+            </div>
+        </div>
 
-          <div class="sticky-top bg-white py-2 px-3 border-bottom z-3" style="top: 0;">
-               <div class="row align-items-center">
+        <nav class="sidebar-nav">
+            <a href="{% url 'problem_list' %}" class="sidebar-link active">
+                <i class="fa-solid fa-table-list"></i>
+                <span>ລາຍການບັນຫາ</span>
+            </a>
+            <a href="{% url 'problem_create' %}" class="sidebar-link">
+                <i class="fa-solid fa-circle-plus"></i>
+                <span>ບັນທຶກບັນຫາໃໝ່</span>
+            </a>
+            <a href="{% url 'import_guide' %}" class="sidebar-link">
+                <i class="fa-solid fa-file-word"></i>
+                <span>Import Word Guide</span>
+            </a>
+        </nav>
 
-                    <!-- 🔘 Create Button -->
-                    <div class="col-auto mb-2 mb-md-0">
-                         <a href="{% url 'problem_create' %}" class="btn btn-primary btn-sm"
-                         style="font-family: Phetsarath OT;">➕ ບັນທຶກບັນຫາໃໝ່</a>
-                    </div>
+        <div class="sidebar-section-title">ສະຖານະບັນຫາ</div>
+        <div class="status-menu">
+            <a href="{% url 'problem_list' %}" class="status-item {% if not selected_status %}selected{% endif %}">
+                <span><i class="fa-solid fa-layer-group"></i> ທັງໝົດ</span>
+                <span class="status-count">{{ total_issues }}</span>
+            </a>
+            <a href="?status=resolved{% if search_query %}&search={{ search_query }}{% endif %}" class="status-item resolved {% if selected_status == 'resolved' %}selected{% endif %}">
+                <span><i class="fa-solid fa-circle-check"></i> ແກ້ໄຂແລ້ວ</span>
+                <span class="status-count">{{ resolved_count }}</span>
+            </a>
+            <a href="?status=open{% if search_query %}&search={{ search_query }}{% endif %}" class="status-item open {% if selected_status == 'open' %}selected{% endif %}">
+                <span><i class="fa-solid fa-circle-exclamation"></i> ຍັງເປີດ</span>
+                <span class="status-count">{{ open_count }}</span>
+            </a>
+        </div>
 
-                    <!-- 🔍 Search -->
-                    <div class="col text-center mb-2 mb-md-0">
-                         <form method="get" class="d-inline-flex align-items-center gap-2 w-100"
-                              style="max-width: 500px;">
-                              <input type="text" id="liveSearch" name="search"
-                                   class="form-control form-control-sm w-100" placeholder="🔍 ຄົ້ນຫາ ..."
-                                   autocomplete="off">
-                              <button type="submit" class="btn btn-outline-secondary btn-sm">ຄົ້ນຫາ</button>
-                         </form>
-                    </div>
+        <form method="get" class="sidebar-filter-form">
+            <input type="hidden" name="status" value="{{ selected_status|default:'' }}">
+            <input type="hidden" name="search" value="{{ search_query|default:'' }}">
 
-                    <!-- 🔔 Notification -->
-                    <div class="col-auto mb-2 mb-md-0">
-                         <a class="nav-link position-relative ms-3" href="{{ latest_problem_link }}"
-                              style="font-family: Phetsarath OT;">
-                              🔔 ການແຈ້ງເຕືອນ
-                              {% if notification_count > 0 %}
-                              <span class="notification-badge" style="font-family: Phetsarath OT;">
-                                   {{ notification_count }}
-                              </span>
-                              {% endif %}
-                         </a>
-                    </div>
+            <div class="sidebar-section-title">ຕົວກອງ</div>
 
-                    <!-- 👤 Profile Dropdown -->
-                    <div class="col-auto position-relative mb-2 mb-md-0">
-                         <img src="{% static 'core/images/apb.jpg' %}" id="profileIcon" alt="Profile"
-                              class="rounded-circle" width="36" style="cursor: pointer;">
-                         <div class="position-absolute bg-white border shadow-sm rounded px-2 py-2 mt-2"
-                              id="profileDropdown" style="right: 0; display: none; z-index: 999;">
-                              <a href="{% url 'profile_view' %}" 
-                              class="dropdown-item small">👤 ໂປຣໄຟລ໌</a>
-                              <a href="{% url 'logout' %}" onclick="showLogoutModal(event)" class="dropdown-item small">🚪 ອອກຈາກລະບົບ</a>
-                         </div>
-                    </div>
+            <label class="filter-label" for="priorityFilter">
+                ຄວາມສຳຄັນ
+            </label>
 
+            <select id="priorityFilter"
+                    name="priority"
+                    class="form-select form-select-sm"
+                    onchange="this.form.submit()">
+
+                <option value="">ທັງໝົດ</option>
+
+                <option value="Critical"
+                    {% if selected_priority == 'Critical' %}selected{% endif %}>
+                    Critical
+                </option>
+
+                <option value="High"
+                    {% if selected_priority == 'High' %}selected{% endif %}>
+                    High
+                </option>
+
+                <option value="Medium"
+                    {% if selected_priority == 'Medium' %}selected{% endif %}>
+                    Medium
+                </option>
+
+                <option value="Low"
+                    {% if selected_priority == 'Low' %}selected{% endif %}>
+                    Low
+                </option>
+            </select>
+
+            <label class="filter-label" for="moduleFilter">Module</label>
+            <select id="moduleFilter"
+                    name="module"
+                    class="form-select form-select-sm"
+                    onchange="this.form.submit()">
+                <option value="">ທັງໝົດ</option>
+            {% for item in module_report %}
+            <option value="{{ item.module_name }}"
+                {% if selected_module == item.module_name %}selected{% endif %}>
+                {{ item.module_name }} ({{ item.count }})
+            </option>
+            {% endfor %}
+            </select>
+
+            <div class="date-grid">
+                <div>
+                    <label class="filter-label" for="startDate">Start Date</label>
+                    <input id="startDate" type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
+                </div>
+                <div>
+                    <label class="filter-label" for="endDate">End Date</label>
+                    <input id="endDate" type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm w-100 mt-3">
+                <i class="fa-solid fa-filter me-1"></i> Apply Filters
+            </button>
+            <a href="{% url 'problem_list' %}" class="btn btn-light btn-sm w-100 mt-2">
+                <i class="fa-solid fa-rotate-left me-1"></i> Reset
+            </a>
+            <a href="{% url 'export_problems_pdf' %}?status={{ selected_status }}&priority={{ selected_priority }}&search={{ search_query }}&start_date={{ start_date|default_if_none:'' }}&end_date={{ end_date|default_if_none:'' }}&module={{ selected_module }}"
+               target="_blank" class="btn btn-outline-danger btn-sm w-100 mt-2">
+                <i class="fa-solid fa-file-pdf me-1"></i> Export PDF
+            </a>
+        </form>
+
+        <div class="sidebar-user">
+          <img src="{% static 'core/images/apb.jpg' %}" alt="Profile">
+
+          <div class="flex-grow-1 overflow-hidden">
+               <div class="sidebar-user-name text-truncate">
+                    {% firstof request.user.get_full_name request.user.email "User" %}
+               </div>
+
+               <div class="sidebar-user-role">
+                    System User
                </div>
           </div>
 
-          <div class="row">
+          <a href="{% url 'logout' %}"
+               onclick="showLogoutModal(event)"
+               class="sidebar-logout"
+               title="Logout">
+               <i class="fa-solid fa-right-from-bracket"></i>
+          </a>
+       </div>
+    </aside>
 
-               <!-- 🧭 Sidebar -->
-               <div class="col-md-3 col-lg-2 p-3 sidebar">
+    <!-- Main -->
+    <main class="app-main">
+        <header class="topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div>
+                    <h1 class="page-title">Problem Management</h1>
+                    <p class="page-subtitle">ຈັດການ ແລະ ຕິດຕາມບັນຫາໃນລະບົບ</p>
+                </div>
+            </div>
 
-                    <form method="get">
+            <div class="topbar-actions">
+                <form method="get" class="top-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="liveSearch" name="search" value="{{ search_query }}" placeholder="ຄົ້ນຫາ Problem ID, Title..." autocomplete="off">
+                </form>
 
-                         <div class="mb-3">
-                              <h6 class="mb-2"><strong>🎯 ສະຖານະບັນຫາ:</strong></h6>
-                              <div class="btn-group-vertical w-100">
-                                   <a href="{% url 'problem_list' %}"
-                                        class="btn btn-outline-dark btn-sm {% if not selected_status %}active{% endif %}">ທັງໝົດ</a>
-                                   <a href="?status=resolved{% if search_query %}&search={{ search_query }}{% endif %}"
-                                        class="btn btn-outline-success btn-sm {% if selected_status == 'resolved' %}active{% endif %}">ແກ້ໄຂແລ້ວ✅ ({{ resolved_count }})</a>
-                                   <a href="?status=open{% if search_query %}&search={{ search_query }}{% endif %}"
-                                        class="btn btn-outline-danger btn-sm {% if selected_status == 'open' %}active{% endif %}">ຍັງບໍ່ທັນແກ້ໄຂ🟥 ({{ open_count }})</a>
-                              </div>
-                         </div>
+                <a href="{{ latest_problem_link }}" class="icon-button" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    {% if notification_count > 0 %}
+                    <span class="notification-badge">{{ notification_count }}</span>
+                    {% endif %}
+                </a>
 
-                         <!-- 🗂️ Filter by Priority -->
-                         <div class="mb-3">
-                              <h6 class="mb-2"><strong>📌 ຈັດລຽງລຳດັບຄວາມສໍາຄັນ:</strong></h6>
-                              <form method="get">
-                                   <select name="priority" class="form-select" onchange="this.form.submit()">
-                                        <option value="">ທັງໝົດ</option>
-                                        <option value="Critical" {% if selected_priority == "Critical" %}selected{% endif %}>ສຳຄັນ</option>
-                                        <option value="High" {% if selected_priority == "High" %}selected{% endif %}>ສູງ
-                                        </option>
-                                        <option value="Medium" {% if selected_priority == "Medium" %}selected{% endif %}>ປານກາງ</option>
-                                        <option value="Low" {% if selected_priority == "Low" %}selected{% endif %}>ຕໍ່າ
-                                        </option>
-                                   </select>
-                              </form>
+                <div class="dropdown">
+                    <button class="profile-button dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="{% static 'core/images/apb.jpg' %}" alt="Profile">
+                        <span class="d-none d-lg-inline">{{ request.user.username }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item" href="{% url 'profile_view' %}"><i class="fa-regular fa-user me-2"></i>ໂປຣໄຟລ໌</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'logout' %}" onclick="showLogoutModal(event)"><i class="fa-solid fa-right-from-bracket me-2"></i>ອອກຈາກລະບົບ</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
 
-                         </div>
+        <section class="content-area">
+            <div class="welcome-row">
+                <div>
+                    <h2>ບັນຫາທີ່ເຄື່ອນໄຫວລ່າສຸດ</h2>
+                    <p>ກວດເບິ່ງ, ແກ້ໄຂ ແລະ ຕິດຕາມບັນຫາທັງໝົດ.</p>
+                </div>
+                <div class="welcome-actions">
+                    <a href="{% url 'import_guide' %}" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-file-import me-2"></i>Import Word
+                    </a>
+                    <a href="{% url 'problem_create' %}" class="btn btn-primary">
+                        <i class="fa-solid fa-plus me-2"></i>ບັນທຶກບັນຫາ
+                    </a>
+                </div>
+            </div>
 
-                         <!-- 📦 Module Report -->
-                         <div class="mb-3">
-                              <h6 class="mb-2"><strong>📦 ໂມດູນພົບບັນຫາຫຼາຍທີສຸດ:</strong></h6>
-                              <div class="dropdown">
-                                   <button class="btn btn-outline-dark btn-sm dropdown-toggle w-100 text-start"
-                                        type="button" id="moduleDropdown" data-bs-toggle="dropdown"
-                                        aria-expanded="false">ເລືອກໂມດູນ</button>
-                                   <ul class="dropdown-menu w-100" aria-labelledby="moduleDropdown">
-                                        {% for item in module_report %}
-                                        <li>
-                                             <a class="dropdown-item d-flex justify-content-between align-items-center {% if selected_module == item.module_module_name %}active{% endif %}"
-                                                  href="?status={{ selected_status }}&priority={{ selected_priority }}&search={{ search_query }}&start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}&module={{ item.module__module_name }}">
-                                                  {{ item.module__module_name }}
-                                                  <span class="badge bg-success rounded-pill">{{ item.count }}</span>
-                                             </a>
-                                        </li>
-                                        {% endfor %}
-                                   </ul>
-                              </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon total"><i class="fa-solid fa-layer-group"></i></div>
+                    <div><span class="stat-label">Total Problems</span><strong>{{ total_issues }}</strong></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon open"><i class="fa-solid fa-circle-exclamation"></i></div>
+                    <div><span class="stat-label">Open</span><strong>{{ open_count }}</strong></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon resolved"><i class="fa-solid fa-circle-check"></i></div>
+                    <div><span class="stat-label">Resolved</span><strong>{{ resolved_count }}</strong></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon notification"><i class="fa-solid fa-bell"></i></div>
+                    <div><span class="stat-label">Notifications</span><strong>{{ notification_count }}</strong></div>
+                </div>
+            </div>
 
-                              <br>
-
-                              <form method="get" class="mb-3">
-                                   <label class="form-label small"><b>📅 Start Date:</b></label>
-                                   <input type="date" name="start_date" class="form-control form-control-sm"
-                                        value="{{ start_date }}">
-
-                                   <label class="form-label small mt-2"><b>📅 End Date:</b></label>
-                                   <input type="date" name="end_date" class="form-control form-control-sm"
-                                        value="{{ end_date }}">
-
-                                   <button type="submit" class="btn btn-outline-primary btn-sm mt-2 w-100">🔍Filter</button>
-                              </form>
-
-                              <!-- 🔄 Reset Button -->
-                              <div class="d-grid">
-                                   <a href="{% url 'problem_list' %}" class="btn btn-secondary btn-sm">🔄 Reset Filters</a>
-                              </div>
-
-                              <br>
-
-                              <a href="{% url 'export_problems_pdf' %}?status={{ selected_status }}&priority={{ selected_priority }}&search={{ search_query }}&start_date={{ start_date|default_if_none:'' }}&end_date={{ end_date|default_if_none:'' }}&module={{ selected_module }}" class="btn btn-outline-success btn-sm w-100 mt-2" target="_blank">
-                              📄 Export Filtered to PDF
-                              </a>
-
-                         </div>
-
-                    </form>
-
-               </div>
-
-               <!-- 📄 Main Content Area -->
-               <div class="col-md-9 col-lg-10 p-4">
-                    <h5><b>ບັນຫາທີເຄື່ອນໄຫວລ່າສຸດ:</b></h5>
-                    <h6>ຈຳນວນທັງໜົດ: {{ total_issues }} ບັນຫາ</h6>
-                    <hr>
-
-                    <!-- 📋 Problem Table -->
-                    <div class="table-responsive">
-                         <table class="table table-striped" id="problemTable" style="table-layout: auto;">
-                              <thead class="table-light">
-                                   <tr>
-                                        <th style="white-space: nowrap">Error Problem ID:</th>
-                                        <th style="white-space: nowrap">Error Description:</th>
-                                        <th style="white-space: nowrap">Error Details:</th>
-                                        <th style="white-space: nowrap">Module:</th>
-                                        <th style="white-space: nowrap">Status:</th>
-                                        <th style="white-space: nowrap">Department:</th>
-                                        <th style="white-space: nowrap">Last Updated:</th>
-                                        <th style="white-space: nowrap">Actions:</th>
-                                   </tr>
-                              </thead>
-                              <tbody id="problemTableBody">
-                                   {% for problem in page_obj %}
-                                   <tr>
-                                        <td class="error-id-text">{{ problem.problem_id }}</td>
-                                        <td class="error-description-text">
-                                             <a href="{% url 'problem_detail' problem_id=problem.problem_id %}">
-                                                  {{ problem.title }}
-                                             </a>
-                                        </td>
-
-                                        <td class="text-wrap">{{ problem.description }}</td>
-                                        <td>{{ problem.module.module_name }}</td>
-                                        <td>{{ problem.status }}</td>
-                                        <td>{{ problem.department.department_name }}</td>
-                                        <td>{{ problem.updated_at|date:"SHORT_DATETIME_FORMAT" }}</td>
-                                        <td class="text-nowrap">
-                                             <a href="{% url 'problem_detail' problem_id=problem.problem_id %}" class="btn btn-sm btn-primary">👁️ ເບິ່ງ</a>
-
-                                             <a href="{% url 'problem_edit' problem_id=problem.problem_id %}" class="btn btn-sm btn-warning">✏️ ແກ້ໄຂ</a>
-
-                                             <button class="btn btn-sm btn-danger" onclick="confirmDelete('{{ problem.problem_id }}')">🗑️ ລົບ</button>
-                                        </td>
-
-                                   </tr>
-                                   {% empty %}
-                                   <tr>
-                                        <td colspan="8" class="text-center text-muted">ບໍ່ພົບຂໍ້ມູນ</td>
-                                   </tr>
-                                   {% endfor %}
-                              </tbody>
-                         </table>
+            <div class="data-card">
+                <div class="data-card-header">
+                    <div>
+                        <h3>Problem List</h3>
+                        <p>Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
                     </div>
+                    <span class="result-count">{{ total_issues }} records</span>
+                </div>
 
-                    <!-- 🔢 Pagination -->
-                    <nav aria-label="Page navigation">
-                         <ul class="pagination justify-content-center">
-                              {% if page_obj.has_previous %}
-                              <li class="page-item">
-                                   <a class="page-link"
-                                        href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_priority %}&priority={{ selected_priority }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">
-                                        ⏮️ ໜ້າກ່ອນ
-                                   </a>
-                              </li>
-                              {% endif %}
+                <div class="table-responsive">
+                    <table class="table modern-table align-middle mb-0" id="problemTable">
+                        <thead>
+                        <tr>
+                            <th>Problem ID</th>
+                            <th>Description</th>
+                            <th>Details</th>
+                            <th>Module</th>
+                            <th>Status</th>
+                            <th>Department</th>
+                            <th>Updated</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="problemTableBody">
+                        {% for problem in page_obj %}
+                        <tr>
+                            <td><span class="problem-id">{{ problem.problem_id }}</span></td>
+                            <td>
+                                <a class="problem-title" href="{% url 'problem_detail' problem_id=problem.problem_id %}">{{ problem.title }}</a>
+                            </td>
+                            <td><div class="problem-details">{{ problem.description }}</div></td>
+                            <td><span class="module-pill">{{ problem.module.module_name }}</span></td>
+                            <td>
+                                {% if problem.status|lower == 'resolved' %}
+                                <span class="status-badge status-resolved"><i class="fa-solid fa-circle-check"></i> Resolved</span>
+                                {% else %}
+                                <span class="status-badge status-open"><i class="fa-solid fa-circle"></i> {{ problem.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ problem.department.department_name }}</td>
+                            <td><span class="updated-date">{{ problem.updated_at|date:"M d, Y" }}</span><small>{{ problem.updated_at|date:"H:i" }}</small></td>
+                            <td class="text-end text-nowrap">
+                                <div class="action-group">
+                                    <a href="{% url 'problem_detail' problem_id=problem.problem_id %}" class="action-btn view" title="View"><i class="fa-regular fa-eye"></i></a>
+                                    <a href="{% url 'problem_edit' problem_id=problem.problem_id %}" class="action-btn edit" title="Edit"><i class="fa-regular fa-pen-to-square"></i></a>
+                                    <button type="button" class="action-btn delete" onclick="confirmDelete('{{ problem.problem_id }}')" title="Delete"><i class="fa-regular fa-trash-can"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <i class="fa-regular fa-folder-open"></i>
+                                    <h4>ບໍ່ພົບຂໍ້ມູນ</h4>
+                                    <p>ລອງປ່ຽນຄຳຄົ້ນຫາ ຫຼື ຕົວກອງ.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
 
-                              {% for num in page_obj.paginator.page_range %}
-                              <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                                   <a class="page-link"
-                                        href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_priority %}&priority={{ selected_priority }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">
-                                        {{ num }}
-                                   </a>
-                              </li>
-                              {% endfor %}
-
-                              {% if page_obj.has_next %}
-                              <li class="page-item">
-                                   <a class="page-link"
-                                        href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_priority %}&priority={{ selected_priority }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">
-                                        ໜ້າຕໍ່ໄປ ⏭️
-                                   </a>
-                              </li>
-                              {% endif %}
-                         </ul>
+                {% if page_obj.paginator.num_pages > 1 %}
+                <div class="pagination-wrap">
+                    <div class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
+                    <nav aria-label="Problem pagination">
+                        <ul class="pagination pagination-sm mb-0">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&priority={{ selected_priority }}&status={{ selected_status }}&module={{ selected_module }}&start_date={{ start_date }}&end_date={{ end_date }}"><i class="fa-solid fa-chevron-left"></i></a></li>
+                            {% endif %}
+                            {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}&search={{ search_query }}&priority={{ selected_priority }}&status={{ selected_status }}&module={{ selected_module }}&start_date={{ start_date }}&end_date={{ end_date }}">{{ num }}</a></li>
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&priority={{ selected_priority }}&status={{ selected_status }}&module={{ selected_module }}&start_date={{ start_date }}&end_date={{ end_date }}"><i class="fa-solid fa-chevron-right"></i></a></li>
+                            {% endif %}
+                        </ul>
                     </nav>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+</div>
 
-               </div>
+<!-- Logout modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body text-center p-4">
+                <div class="logout-icon"><i class="fa-solid fa-right-from-bracket"></i></div>
+                <h5 class="mt-3">ອອກຈາກລະບົບ?</h5>
+                <p class="text-muted small">ທ່ານແນ່ໃຈວ່າຈະອອກຈາກລະບົບບໍ?</p>
+                <div class="d-flex gap-2 mt-3">
+                    <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal">ຍົກເລີກ</button>
+                    <a href="{% url 'logout' %}" class="btn btn-danger w-50">ອອກ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-          </div>
-     </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const sidebar = document.getElementById('appSidebar');
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+        sidebar.classList.toggle('show');
+    });
 
-     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-     <script>
-          $(document).ready(function () {
-               $('#liveSearch').on('keyup', function () {
-                    let query = $(this).val();
+    function showLogoutModal(event) {
+        event.preventDefault();
+        new bootstrap.Modal(document.getElementById('logoutModal')).show();
+    }
 
-                    $.ajax({
-                         url: window.location.href.split('?')[0],  // remove old query
-                         data: { 'search': query },
-                         headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                         success: function (data) {
-                              let rows = '';
-                              if (data.results.length === 0) {
-                                   rows = `<tr><td colspan="8" class="text-center text-muted">ບໍ່ພົບຂໍ້ມູນ</td></tr>`;
-                              } else {
-                                   data.results.forEach(p => {
-                                        rows += `
+    function confirmDelete(problemId) {
+        Swal.fire({
+            title: 'ທ່ານແນ່ໃຈບໍ?',
+            text: 'ຂໍ້ມູນນີ້ຈະຖືກລົບຖາວອນ!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ລົບ',
+            cancelButtonText: 'ຍົກເລີກ',
+            confirmButtonColor: '#dc3545'
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/problems/${problemId}/delete/`;
+
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
+
+    let searchTimer;
+    $('#liveSearch').on('input', function () {
+        clearTimeout(searchTimer);
+        const query = $(this).val();
+
+        searchTimer = setTimeout(() => {
+            $.ajax({
+                url: window.location.pathname,
+                data: { search: query },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function (data) {
+                    if (!data.results) return;
+                    let rows = '';
+                    if (data.results.length === 0) {
+                        rows = '<tr><td colspan="8"><div class="empty-state"><i class="fa-regular fa-folder-open"></i><h4>ບໍ່ພົບຂໍ້ມູນ</h4></div></td></tr>';
+                    } else {
+                        data.results.forEach(p => {
+                            rows += `
                                 <tr>
-                                    <td>${p.problem_id}</td>
-                                    <td><a href="/problem/${p.problem_id}/">${p.title}</a></td>
-                                    <td>${p.description}</td>
-                                    <td colspan="5">...</td> <!-- fill extra columns as needed -->
-                                </tr>
-                            `;
-                                   });
-                              }
-                              $('#problemTableBody').html(rows);
-                         }
-                    });
-               });
-          });
-     </script>
+                                    <td><span class="problem-id">${p.problem_id ?? ''}</span></td>
+                                    <td><a class="problem-title" href="/problem/${p.problem_id}/">${p.title ?? ''}</a></td>
+                                    <td><div class="problem-details">${p.description ?? ''}</div></td>
+                                    <td><span class="module-pill">${p.module ?? ''}</span></td>
+                                    <td><span class="status-badge status-open">${p.status ?? ''}</span></td>
+                                    <td>${p.department ?? ''}</td>
+                                    <td>${p.updated_at ?? ''}</td>
+                                    <td></td>
+                                </tr>`;
+                        });
+                    }
+                    $('#problemTableBody').html(rows);
+                }
+            });
+        }, 350);
+    });
+</script>
 
-
-     <script>
-          const profileIcon = document.getElementById("profileIcon");
-          const dropdown = document.getElementById("profileDropdown");
-
-          profileIcon.addEventListener("click", () => {
-               dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-          });
-
-          // Close dropdown when clicking outside
-          document.addEventListener("click", (event) => {
-               if (!profileIcon.contains(event.target) && !dropdown.contains(event.target)) {
-                    dropdown.style.display = "none";
-               }
-          });
-
-          function confirmLogout(event) {
-               if (!confirm("Are you sure you want to log out?")) {
-                    event.preventDefault();
-               }
-          }
-     </script>
-
-     <!-- 🔒 Logout Confirmation Modal -->
-     <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-sm modal-dialog-centered">
-               <div class="modal-content">
-                    <div class="modal-header">
-                         <h5 class="modal-title" id="logoutModalLabel">ຢືນຢັນການອອກຈາກລະບົບ</h5>
-                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ປິດ"></button>
-                    </div>
-                    <div class="modal-body">
-                         ທ່ານແນ່ໃຈວ່າຈະອອກຈາກລະບົບ?
-                    </div>
-                    <div class="modal-footer justify-content-between">
-                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ຍົກເລີກ</button>
-                         <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">ອອກຈາກລະບົບ</a>
-                    </div>
-               </div>
-          </div>
-     </div>
-
-     {% if messages %}
-     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-     <link rel="stylesheet" href="{% static 'core/css/fonts.css' %}">
-
-     {% for message in messages %}
-     <script>
-          Swal.fire({
-               icon: 'success',
-               text: "{{ message|escapejs }}",
-               confirmButtonText: 'OK'
-          });
-     </script>
-     {% endfor %}
-     {% endif %}
-
-     <script>
-     function confirmDelete(problemId) {
-          Swal.fire({
-               title: 'ທ່ານແນ່ໃຈບໍ?',
-               text: "ຂໍ້ມູນນີ້ຈະຖືກລົບຖາວອນ!",
-               icon: 'warning',
-               showCancelButton: true,
-               confirmButtonColor: '#d33',
-               cancelButtonColor: '#3085d6',
-               confirmButtonText: 'ລົບ!',
-               cancelButtonText: 'ຍົກເລີກ'
-          }).then((result) => {
-               if (result.isConfirmed) {
-                    // Create and submit hidden form
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `/problems/${problemId}/delete/`;
-
-                    const csrfToken = '{{ csrf_token }}';
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'csrfmiddlewaretoken';
-                    input.value = csrfToken;
-
-                    form.appendChild(input);
-                    document.body.appendChild(form);
-                    form.submit();
-               }
-          });
-     }
-     </script>
-
-
-
-     <script>
-          function showLogoutModal(event) {
-               event.preventDefault();
-               const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
-               modal.show();
-          }
-     </script>
-
-     <!-- Scripts -->
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-     <!-- SweetAlert2 -->
-     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-     {% if messages %}
-     {% for message in messages %}
-     <script>
-          Swal.fire({
-               icon: '{{ message.tags|default:"success" }}',
-               title: 'ສຳເລັດ!',
-               text: '{{ message }}',
-               timer: 2000,
-               showConfirmButton: false
-          });
-     </script>
-     {% endfor %}
-     {% endif %}
-
-
+{% if messages %}
+{% for message in messages %}
+<script>
+    Swal.fire({
+        icon: '{{ message.tags|default:"success" }}',
+        title: 'ສຳເລັດ!',
+        text: '{{ message|escapejs }}',
+        timer: 2200,
+        showConfirmButton: false
+    });
+</script>
+{% endfor %}
+{% endif %}
 </body>
-
 </html>

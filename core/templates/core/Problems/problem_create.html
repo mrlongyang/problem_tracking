@@ -1,99 +1,340 @@
 {% extends "core/Main/base.html" %}
 {% load static %}
-{% block content %}
 {% load widget_tweaks %}
+
+{% block content %}
 
 <link rel="stylesheet" href="{% static 'core/css/problem_form.css' %}">
 <link rel="stylesheet" href="{% static 'core/css/fonts.css' %}">
 
+<div class="container py-5">
+    <div class="problem-form-card">
 
-<div class="container mt-5">
-    <div class="card shadow p-4">
-        <h5 class="mb-4 text-primary">🛠️ ບັນທຶກບັນຫາໃໝ່</h5>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-
-            <!-- Django form fields -->
-            <div class="mb-3">
-                <label for="id_problem_id" class="form-label fw-bold">🆔 ໄອດີບັນຫາ:</label>
-                {{ form.problem_id }}
+        <!-- Header -->
+        <div class="problem-form-header">
+            <div>
+                <h4 class="mb-1">🛠️ ບັນທຶກບັນຫາໃໝ່</h4>
+                <p class="mb-0">
+                    Create a new troubleshooting problem record
+                </p>
             </div>
 
-            <div class="mb-3 d-flex align-items-center">
-                <label for="id_title" class="form-label fw-bold me-3" style="white-space: nowrap;">📝 ຫົວຂໍ້:</label>
-                {{ form.title|add_class:"form-control long-input" }}
-            </div>
+            <a href="{% url 'problem_list' %}" class="btn btn-light btn-sm">
+                ← ກັບຄືນ
+            </a>
+        </div>
 
-            <div class="mb-3">
-                <label for="id_description" class="form-label fw-bold">📄 ຄຳອະທິບາຍ:</label>
-                {{ form.description }}
-            </div>
+        <div class="problem-form-body">
 
-            <div class="mb-3">
-                <label for="id_priority" class="form-label fw-bold">🚦ເລືອກລຳດັບຄວາມສຳຄັນ:</label>
-                {{ form.priority }}
-            </div>
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
 
-            <div class="mb-3">
-                <label for="id_department" class="form-label fw-bold">🏢 ເລືອກຂະແໜງ:</label>
-                {{ form.department }}
-            </div>
+                <!-- Non-field errors -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
-            <div class="mb-3">
-                <label for="id_module" class="form-label fw-bold">📦 ເລືອກໂມໂດລ:</label>
-                {{ form.module }}
-            </div>
+                <!-- Identification section -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <span class="section-icon">🆔</span>
+                        <div>
+                            <h5>Problem Identification</h5>
+                            <small>Basic error and transaction information</small>
+                        </div>
+                    </div>
 
-            <!-- File input -->
-            <div class="mb-3">
-                <label for="files" class="form-label fw-bold">📎ແນບໄຟລ໌:</label>
-                <input class="form-control" type="file" name="files" id="files" multiple>
-                <small class="form-text text-muted">ທ່ານສາມາດເລືອກຫຼາຍໄຟລ໌ໄດ້.</small>
-                <div id="file-preview" class="mt-2"></div>
-            </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="{{ form.problem_id.id_for_label }}" class="form-label">
+                                ໄອດີບັນຫາ
+                                <span class="required-mark">*</span>
+                            </label>
 
-            <button type="submit" class="btn btn-success">✅ ບັນທຶກບັນຫາ</button>
-            <a class="btn btn-secondary ms-2" href="{% url 'problem_list' %}">❌ ຍົກເລີກ</a>
-        </form>
+                            {{ form.problem_id|add_class:"form-control" }}
+
+                            {% for error in form.problem_id.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="{{ form.error_code.id_for_label }}" class="form-label">
+                                Error Code
+                            </label>
+
+                            {{ form.error_code|add_class:"form-control" }}
+
+                            {% for error in form.error_code.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="{{ form.transaction_code.id_for_label }}" class="form-label">
+                                Transaction Code
+                            </label>
+
+                            {{ form.transaction_code|add_class:"form-control" }}
+
+                            {% for error in form.transaction_code.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Function section -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <span class="section-icon">🧩</span>
+                        <div>
+                            <h5>Function Information</h5>
+                            <small>System function and module details</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="{{ form.function_name.id_for_label }}" class="form-label">
+                                Function Name
+                            </label>
+
+                            {{ form.function_name|add_class:"form-control" }}
+
+                            {% for error in form.function_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="{{ form.module.id_for_label }}" class="form-label">
+                                ໂມດູນ
+                            </label>
+
+                            {{ form.module|add_class:"form-select" }}
+
+                            {% for error in form.module.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem details -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <span class="section-icon">📝</span>
+                        <div>
+                            <h5>Problem Details</h5>
+                            <small>Error title and root cause description</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            ຫົວຂໍ້
+                            <span class="required-mark">*</span>
+                        </label>
+
+                        {{ form.title|add_class:"form-control" }}
+
+                        {% for error in form.title.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-0">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            Root Cause / ຄຳອະທິບາຍ
+                            <span class="required-mark">*</span>
+                        </label>
+
+                        {{ form.description|add_class:"form-control" }}
+
+                        {% for error in form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Classification -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <span class="section-icon">⚙️</span>
+                        <div>
+                            <h5>Classification</h5>
+                            <small>Status, priority and department</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                ລຳດັບຄວາມສຳຄັນ
+                            </label>
+
+                            {{ form.priority|add_class:"form-select" }}
+
+                            {% for error in form.priority.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                ສະຖານະ
+                            </label>
+
+                            {{ form.status|add_class:"form-select" }}
+
+                            {% for error in form.status.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="{{ form.department.id_for_label }}" class="form-label">
+                                ຂະແໜງ
+                            </label>
+
+                            {{ form.department|add_class:"form-select" }}
+
+                            {% for error in form.department.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attachment section -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <span class="section-icon">📎</span>
+                        <div>
+                            <h5>Attachments</h5>
+                            <small>Add screenshots, documents, or supporting files</small>
+                        </div>
+                    </div>
+
+                    <div class="upload-area">
+                        <input
+                            class="form-control"
+                            type="file"
+                            name="files"
+                            id="files"
+                            multiple
+                        >
+
+                        <div class="upload-help">
+                            ສາມາດເລືອກຫຼາຍໄຟລ໌ໄດ້
+                        </div>
+
+                        <div id="file-preview" class="mt-3"></div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <a class="btn btn-outline-secondary" href="{% url 'problem_list' %}">
+                        ❌ ຍົກເລີກ
+                    </a>
+
+                    <button type="submit" class="btn btn-success">
+                        ✅ ບັນທຶກບັນຫາ
+                    </button>
+                </div>
+            </form>
+
+        </div>
     </div>
 </div>
 
 {% if messages %}
-  {% for message in messages %}
-    {% if forloop.first %}
-      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-      <script>
-        Swal.fire({
-          title: '🎉 Success!',
-          text: "{{ message }}",
-          icon: 'success',
-          confirmButtonText: 'OK'
-        });
-      </script>
-    {% endif %}
-  {% endfor %}
+    {% for message in messages %}
+        {% if forloop.first %}
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    Swal.fire({
+                        title: "ສຳເລັດ!",
+                        text: "{{ message|escapejs }}",
+                        icon: "success",
+                        confirmButtonText: "OK"
+                    });
+                });
+            </script>
+        {% endif %}
+    {% endfor %}
 {% endif %}
 
-
-<!-- JS for file preview -->
 <script>
-    document.getElementById('files').addEventListener('change', function (event) {
-        const preview = document.getElementById('file-preview');
-        preview.innerHTML = ''; // Clear previous preview
+    const fileInput = document.getElementById("files");
+    const preview = document.getElementById("file-preview");
 
-        const files = event.target.files;
-        if (files.length === 0) return;
+    fileInput.addEventListener("change", function (event) {
+        preview.innerHTML = "";
 
-        const list = document.createElement('ul');
-        list.className = 'list-group';
+        const files = Array.from(event.target.files);
 
-        Array.from(files).forEach(file => {
-            const item = document.createElement('li');
-            item.className = 'list-group-item';
-            item.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+        if (files.length === 0) {
+            return;
+        }
+
+        const list = document.createElement("div");
+        list.className = "file-preview-list";
+
+        files.forEach((file) => {
+            const item = document.createElement("div");
+            item.className = "file-preview-item";
+
+            const sizeKb = (file.size / 1024).toFixed(2);
+
+            item.innerHTML = `
+                <div class="file-preview-icon">📄</div>
+
+                <div class="file-preview-info">
+                    <strong>${escapeHtml(file.name)}</strong>
+                    <small>${sizeKb} KB</small>
+                </div>
+            `;
+
             list.appendChild(item);
         });
+
         preview.appendChild(list);
     });
+
+    function escapeHtml(value) {
+        const element = document.createElement("div");
+        element.textContent = value;
+        return element.innerHTML;
+    }
 </script>
+
 {% endblock %}
